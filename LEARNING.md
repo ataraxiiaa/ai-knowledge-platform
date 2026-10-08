@@ -44,3 +44,24 @@
 
 - Stateful : Stores information about client between requests
 - Stateless : Doesn't store information about client between requests
+
+- Why FastAPI?
+  - High performance built on Starlette and Pydantic with ASGI
+  - Native async and concurrency support for fast I/O and LLM operations
+  - Automatic request validation and response serialization using Pydantic
+  - Auto-generated interactive API docs with Swagger UI and ReDoc
+  - Dependency injection system for modular auth and database session handling
+
+- Why PostgreSQL instead of MongoDB?
+  - Strict relational integrity with ACID compliance and foreign key constraints
+  - Supports vector search natively using pgvector extension for embeddings
+  - JSONB support provides document-style flexibility for semi-structured data
+  - Faster and simpler joins across relational models like users, workspaces, and documents
+  - Prevents schema drift and enforces consistent data types
+
+- Why migrations?
+  - Version control for database schema changes over time
+  - Keeps local, test, staging, and production databases consistent
+  - Allows team members to easily synchronize database updates
+  - Safe schema updates without dropping tables or losing data
+  - Supports rollbacks if a database update causes issues
