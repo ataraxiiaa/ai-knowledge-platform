@@ -17,3 +17,14 @@ def test_root():
     response = client.get("/")
     assert response.status_code == 200
     assert "message" in response.json()
+
+
+def test_cors_headers():
+    """Verify CORS headers are returned for allowed origins."""
+    headers = {
+        "Origin": "http://localhost:3000",
+        "Access-Control-Request-Method": "GET",
+    }
+    response = client.options("/health", headers=headers)
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"

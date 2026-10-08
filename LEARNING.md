@@ -65,3 +65,7 @@
   - Allows team members to easily synchronize database updates
   - Safe schema updates without dropping tables or losing data
   - Supports rollbacks if a database update causes issues
+
+**PHASE 2**
+
+- CORS (Cross‑Origin Resource Sharing) is used to let a web server explicitly allow browsers to load resources or make requests from a different origin (domain, protocol, or port) than the one serving the page. It works by adding HTTP headers such as Access-Control-Allow-Origin to safely relax the browser’s same‑origin policy.
