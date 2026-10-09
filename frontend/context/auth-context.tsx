@@ -31,11 +31,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedToken = getStoredToken();
     const savedEmail = getStoredUserEmail();
-    if (savedToken) {
-      setToken(savedToken);
-      setUserEmail(savedEmail);
-    }
-    setIsLoading(false);
+    queueMicrotask(() => {
+      if (savedToken) {
+        setToken(savedToken);
+        setUserEmail(savedEmail);
+      }
+      setIsLoading(false);
+    });
   }, []);
 
   const login = async (email: string, password: string) => {

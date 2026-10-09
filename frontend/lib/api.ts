@@ -51,10 +51,21 @@ export async function apiFetch<T>(
   }
 
   const url = `${API_BASE_URL}${endpoint}`;
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (err: unknown) {
+    if (err instanceof ApiRequestError) {
+      throw err;
+    }
+    throw new ApiRequestError(
+      "Cannot connect to server. Please ensure the backend is running.",
+      0
+    );
+  }
 
   if (response.status === 204) {
     return null as T;
