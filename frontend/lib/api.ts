@@ -1,8 +1,11 @@
 import { TokenResponse, User, Workspace } from "@/types";
 
-const RAW_API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const API_BASE_URL = RAW_API_URL.replace(/\/+$/, "");
+export const Config = {
+  apiUrl: (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(
+    /\/+$/,
+    ""
+  ),
+};
 
 export class ApiRequestError extends Error {
   status: number;
@@ -51,7 +54,7 @@ export async function apiFetch<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${Config.apiUrl}${endpoint}`;
   let response: Response;
   try {
     response = await fetch(url, {
