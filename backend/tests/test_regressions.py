@@ -10,6 +10,19 @@ from sqlalchemy import create_engine, inspect
 from app.core.config import BACKEND_DIR, Settings
 
 
+@pytest.mark.parametrize("driver, module", [
+    ("postgresql+psycopg", "psycopg"),
+    ("postgresql+psycopg2", "psycopg2"),
+])
+def test_postgresql_drivers_load_without_connecting(driver, module):
+    # Engine construction loads the DBAPI, matching the Render startup failure.
+    engine = create_engine(f"{driver}://user:password@localhost/test")
+    try:
+        assert engine.dialect.dbapi.__name__ == module
+    finally:
+        engine.dispose()
+
+
 @pytest.mark.parametrize("password", ["a" * 73, "é" * 37])
 def test_oversized_password_returns_validation_error(client, password):
     response = client.post("/auth/register", json={"email": "long@example.com", "password": password})
