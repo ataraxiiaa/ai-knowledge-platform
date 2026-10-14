@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  AUTH_EXPIRED_EVENT,
   authApi,
   clearStoredToken,
   getStoredToken,
@@ -27,6 +28,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
+
+  useEffect(() => {
+    const handleExpired = () => {
+      setToken(null);
+      setUserEmail(null);
+      router.replace("/login");
+    };
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpired);
+  }, [router]);
 
   useEffect(() => {
     const savedToken = getStoredToken();

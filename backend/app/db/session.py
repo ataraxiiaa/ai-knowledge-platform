@@ -4,7 +4,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
-from app.db.base import Base
 # Import models to ensure they are registered with Base.metadata
 import app.models  # noqa: F401
 
@@ -20,11 +19,6 @@ engine = create_engine(
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def init_db() -> None:
-    """Create all database tables if they do not exist."""
-    Base.metadata.create_all(bind=engine)
 
 
 def get_db() -> Generator[Session, None, None]:

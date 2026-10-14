@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { FileText, ArrowLeft, FolderKanban } from "lucide-react";
+import { FileText, FolderKanban } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 
 export default function DocumentsOverviewPage() {
@@ -14,7 +14,7 @@ export default function DocumentsOverviewPage() {
             All Documents
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Documents are scoped to specific workspaces. Select a workspace to view and upload files.
+            Document storage is coming soon. Select a workspace to explore the preview.
           </p>
         </div>
 
@@ -26,7 +26,7 @@ export default function DocumentsOverviewPage() {
             Workspace Document Ingestion (Phase 3)
           </h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
-            Document extraction, chunking, and embedding will be connected in Phase 3. You can browse documents directly within each workspace.
+            Document uploads and processing are not available yet. Workspace previews do not upload or store your files.
           </p>
           <div className="mt-6 flex justify-center">
             <Link

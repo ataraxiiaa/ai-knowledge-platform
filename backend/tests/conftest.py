@@ -1,3 +1,10 @@
+import os
+
+# Set before importing the application; never load a developer's database or key.
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["SECRET_KEY"] = "test-only-secret-not-for-deployment-0123456789"
+os.environ["CORS_ORIGINS"] = "http://localhost:3000"
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -47,6 +54,8 @@ def client(db_session):
             pass
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
-    app.dependency_overrides.clear()
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.clear()

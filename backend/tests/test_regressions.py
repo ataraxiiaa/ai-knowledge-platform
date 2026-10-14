@@ -1,0 +1,77 @@
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+from pydantic import ValidationError
+from sqlalchemy import create_engine, inspect
+
+from app.core.config import BACKEND_DIR, Settings
+
+
+@pytest.mark.parametrize("password", ["a" * 73, "é" * 37])
+def test_oversized_password_returns_validation_error(client, password):
+    response = client.post("/auth/register", json={"email": "long@example.com", "password": password})
+    assert response.status_code == 422
+    assert "72 UTF-8 bytes" in response.text
+
+
+@pytest.mark.parametrize("password", ["a" * 72, "é" * 36])
+def test_password_at_byte_limit_can_login(client, password):
+    payload = {"email": "boundary@example.com", "password": password}
+    assert client.post("/auth/register", json=payload).status_code == 201
+    assert client.post("/auth/login", json=payload).status_code == 200
+    assert client.post("/auth/login", json={**payload, "password": password + "x"}).status_code == 401
+
+
+@pytest.mark.parametrize("secret", ["short", " " * 40, "development-secret-key-change-in-production-min-32-chars"])
+def test_placeholder_secrets_rejected(secret):
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, SECRET_KEY=secret)
+
+
+def test_secret_required(monkeypatch):
+    monkeypatch.delenv("SECRET_KEY")
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None)
+
+
+@pytest.mark.parametrize("origins", ["*", "http://localhost:3000,*", '["*"]', "", '[42]'])
+def test_wildcard_or_invalid_cors_rejected(origins):
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, CORS_ORIGINS=origins)
+
+
+def test_env_file_is_independent_of_working_directory(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert Path(Settings.model_config["env_file"]) == BACKEND_DIR.parent / ".env"
+
+
+def test_migrations_and_startup_do_not_mutate_schema(tmp_path):
+    database = tmp_path / "migration.db"
+    url = f"sqlite:///{database.as_posix()}"
+    env = {**os.environ, "DATABASE_URL": url}
+
+    # Starting the app must not create tables or touch the configured database.
+    subprocess.run([
+        sys.executable, "-c",
+        "from fastapi.testclient import TestClient\nfrom app.main import app\n"
+        "with TestClient(app) as client:\n"
+        "    assert client.get('/health').status_code == 200\n",
+    ], cwd=BACKEND_DIR, env=env, check=True, capture_output=True)
+    assert not database.exists()
+
+    def migrate(*args):
+        subprocess.run([sys.executable, "-m", "alembic", *args], cwd=BACKEND_DIR, env=env, check=True, capture_output=True)
+
+    migrate("upgrade", "head")
+    migrate("check")
+    engine = create_engine(url)
+    assert {"users", "workspaces", "documents"} <= set(inspect(engine).get_table_names())
+    engine.dispose()
+    migrate("downgrade", "base")
+    engine = create_engine(url)
+    assert set(inspect(engine).get_table_names()) <= {"alembic_version"}
+    engine.dispose()
+    migrate("upgrade", "head")

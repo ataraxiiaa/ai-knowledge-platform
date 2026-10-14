@@ -74,7 +74,6 @@ function WorkspaceContent() {
   const [researchNotes, setResearchNotes] = useState(
     "### Workspace Research Objectives\n- Synthesize key findings from uploaded documents.\n- Extract core definitions, architectures, and performance benchmarks.\n- Formulate follow-up research questions."
   );
-  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     if (!workspaceId) return;
@@ -147,11 +146,6 @@ function WorkspaceContent() {
       };
       setMessages((prev) => [...prev, aiReply]);
     }, 500);
-  };
-
-  const handleSaveNotes = () => {
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
   };
 
   return (
@@ -266,7 +260,7 @@ function WorkspaceContent() {
                       Workspace Documents
                     </h3>
                     <p className="mt-0.5 text-xs text-gray-500">
-                      Upload PDFs, markdown, or text files to build this workspace&apos;s knowledge base.
+                      Preview only: selected files are not uploaded or stored and disappear on reload.
                     </p>
                   </div>
                   <div>
@@ -276,7 +270,7 @@ function WorkspaceContent() {
                       ) : (
                         <Upload className="h-4 w-4" />
                       )}
-                      <span>{isUploading ? "Uploading..." : "Upload Document"}</span>
+                      <span>{isUploading ? "Previewing..." : "Preview Document"}</span>
                       <input
                         type="file"
                         className="hidden"
@@ -395,14 +389,14 @@ function WorkspaceContent() {
                       Workspace Research Notes & Synthesis
                     </h3>
                     <p className="text-xs text-gray-500">
-                      Take structured notes and capture insights for this workspace.
+                      Preview only: notes are not saved and will be lost when you leave or reload this page.
                     </p>
                   </div>
                   <button
-                    onClick={handleSaveNotes}
-                    className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500 transition"
+                    disabled
+                    className="rounded-lg bg-gray-200 px-4 py-2 text-xs font-semibold text-gray-500 cursor-not-allowed"
                   >
-                    {isSaved ? "Saved!" : "Save Notes"}
+                    Saving unavailable
                   </button>
                 </div>
 

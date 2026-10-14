@@ -1,5 +1,7 @@
 import { TokenResponse, User, Workspace } from "@/types";
 
+export const AUTH_EXPIRED_EVENT = "auth:expired";
+
 export const Config = {
   apiUrl: (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(
     /\/+$/,
@@ -89,11 +91,9 @@ export async function apiFetch<T>(
       errorMessage = response.statusText || errorMessage;
     }
 
-    if (response.status === 401 && typeof window !== "undefined") {
+    if (response.status === 401 && token && !endpoint.startsWith("/auth/") && typeof window !== "undefined") {
       clearStoredToken();
-      if (!window.location.pathname.startsWith("/login")) {
-        window.location.href = "/login";
-      }
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
     }
 
     throw new ApiRequestError(errorMessage, response.status);

@@ -35,6 +35,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (new TextEncoder().encode(password).length > 72) {
+      setError("Password must be at most 72 UTF-8 bytes. Some characters use more than one byte.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
