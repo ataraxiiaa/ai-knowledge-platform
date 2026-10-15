@@ -81,7 +81,7 @@ def test_migrations_and_startup_do_not_mutate_schema(tmp_path):
     migrate("upgrade", "head")
     migrate("check")
     engine = create_engine(url)
-    assert {"users", "workspaces", "documents"} <= set(inspect(engine).get_table_names())
+    assert {"users", "workspaces", "documents", "chunks"} <= set(inspect(engine).get_table_names())
     engine.dispose()
     migrate("downgrade", "base")
     engine = create_engine(url)

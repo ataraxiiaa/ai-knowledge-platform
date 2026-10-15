@@ -17,7 +17,20 @@ export interface Document {
   workspace_id: string;
   filename: string;
   status: string;
+  error: string | null;
+  chunk_count: number;
   created_at: string;
+}
+
+export interface SearchResult {
+  chunk_id: string;
+  document_id: string;
+  filename: string;
+  content: string;
+  page: number;
+  chunk_index: number;
+  similarity: number;
+  metadata: Record<string, unknown>;
 }
 
 export interface TokenResponse {

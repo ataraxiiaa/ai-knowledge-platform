@@ -1,4 +1,5 @@
 import uuid
+import logging
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -9,6 +10,7 @@ from app.db.session import get_db
 from app.models.users import User
 from app.models.workspaces import Workspace
 from app.schemas.workspaces import WorkspaceCreate, WorkspaceResponse
+from app.services.storage import delete_workspace_files
 
 router = APIRouter(prefix="/workspaces", tags=["Workspaces"])
 
@@ -111,4 +113,8 @@ def delete_workspace(
 
     db.delete(workspace)
     db.commit()
+    try:
+        delete_workspace_files(id)
+    except OSError:
+        logging.getLogger(__name__).exception("Could not remove files for workspace %s", id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

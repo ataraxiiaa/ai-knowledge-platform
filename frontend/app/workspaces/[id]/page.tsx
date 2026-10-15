@@ -8,15 +8,14 @@ import {
   FileText,
   MessageSquare,
   Sparkles,
-  Upload,
   Send,
   Loader2,
   Calendar,
   AlertCircle,
-  FileCode,
   Bot,
   User as UserIcon,
 } from "lucide-react";
+import { DocumentsPanel } from "@/components/documents-panel";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { workspacesApi, ApiRequestError } from "@/lib/api";
 import { Workspace } from "@/types";
@@ -30,14 +29,6 @@ interface ChatMessage {
   timestamp: string;
 }
 
-interface MockDoc {
-  id: string;
-  name: string;
-  size: string;
-  status: "Ready" | "Processing";
-  uploadedAt: string;
-}
-
 function WorkspaceContent() {
   const params = useParams();
   const workspaceId = params?.id as string;
@@ -47,24 +38,12 @@ function WorkspaceContent() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("documents");
 
-  // Documents tab state
-  const [documents, setDocuments] = useState<MockDoc[]>([
-    {
-      id: "doc-1",
-      name: "Getting-Started-Guide.pdf",
-      size: "1.2 MB",
-      status: "Ready",
-      uploadedAt: new Date().toLocaleDateString(),
-    },
-  ]);
-  const [isUploading, setIsUploading] = useState(false);
-
   // Chat tab state
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "msg-1",
       sender: "ai",
-      text: "Hello! This is your workspace AI assistant. In Phase 4, questions you ask here will be answered using semantic RAG over your uploaded documents.",
+      text: "Chat answers are not available yet. Open Documents and use passage search to find information in your uploaded PDFs.",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -103,24 +82,6 @@ function WorkspaceContent() {
     };
   }, [workspaceId]);
 
-  const handleSimulateUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    setTimeout(() => {
-      const newDoc: MockDoc = {
-        id: `doc-${Date.now()}`,
-        name: file.name,
-        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-        status: "Ready",
-        uploadedAt: new Date().toLocaleDateString(),
-      };
-      setDocuments((prev) => [newDoc, ...prev]);
-      setIsUploading(false);
-    }, 600);
-  };
-
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
@@ -141,7 +102,7 @@ function WorkspaceContent() {
       const aiReply: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         sender: "ai",
-        text: `Received: "${userText}". Full RAG response generation will connect when Phase 4 indexing is enabled!`,
+        text: `Received: "${userText}". This is a chat preview. Use Documents search to retrieve real passages from your PDFs.`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
       setMessages((prev) => [...prev, aiReply]);
@@ -219,9 +180,6 @@ function WorkspaceContent() {
                 >
                   <FileText className="h-4 w-4" />
                   <span>Documents</span>
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                    {documents.length}
-                  </span>
                 </button>
 
                 <button
@@ -251,68 +209,7 @@ function WorkspaceContent() {
             </div>
 
             {/* TAB 1: DOCUMENTS */}
-            {activeTab === "documents" && (
-              <div className="space-y-6">
-                {/* Upload bar */}
-                <div className="flex flex-col gap-4 rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      Workspace Documents
-                    </h3>
-                    <p className="mt-0.5 text-xs text-gray-500">
-                      Preview only: selected files are not uploaded or stored and disappear on reload.
-                    </p>
-                  </div>
-                  <div>
-                    <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-500 transition">
-                      {isUploading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Upload className="h-4 w-4" />
-                      )}
-                      <span>{isUploading ? "Previewing..." : "Preview Document"}</span>
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={handleSimulateUpload}
-                        disabled={isUploading}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {/* Documents list */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs">
-                  <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
-                    <thead className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
-                      <tr>
-                        <th className="px-6 py-3">Document Name</th>
-                        <th className="px-6 py-3">Size</th>
-                        <th className="px-6 py-3">Status</th>
-                        <th className="px-6 py-3">Uploaded</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {documents.map((doc) => (
-                        <tr key={doc.id} className="hover:bg-gray-50 transition">
-                          <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
-                            <FileCode className="h-5 w-5 text-indigo-500" />
-                            <span>{doc.name}</span>
-                          </td>
-                          <td className="px-6 py-4 text-gray-500">{doc.size}</td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
-                              {doc.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-gray-500">{doc.uploadedAt}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+            {activeTab === "documents" && <DocumentsPanel key={workspaceId} workspaceId={workspaceId} />}
 
             {/* TAB 2: CHAT */}
             {activeTab === "chat" && (

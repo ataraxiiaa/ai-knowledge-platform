@@ -14,7 +14,7 @@ export default function DocumentsOverviewPage() {
             All Documents
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Document storage is coming soon. Select a workspace to explore the preview.
+            Select a workspace to upload PDFs and search their extracted passages.
           </p>
         </div>
 
@@ -23,10 +23,10 @@ export default function DocumentsOverviewPage() {
             <FileText className="h-6 w-6" />
           </div>
           <h3 className="mt-4 text-base font-semibold text-gray-900">
-            Workspace Document Ingestion (Phase 3)
+            Workspace document ingestion
           </h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
-            Document uploads and processing are not available yet. Workspace previews do not upload or store your files.
+            Text-based PDFs are extracted, chunked, and embedded locally on the server. Documents and search results stay scoped to their workspace.
           </p>
           <div className="mt-6 flex justify-center">
             <Link

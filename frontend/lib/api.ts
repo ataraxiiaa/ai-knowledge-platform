@@ -1,4 +1,4 @@
-import { TokenResponse, User, Workspace } from "@/types";
+import { Document, SearchResult, TokenResponse, User, Workspace } from "@/types";
 
 export const AUTH_EXPIRED_EVENT = "auth:expired";
 
@@ -47,13 +47,13 @@ export async function apiFetch<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const token = getStoredToken();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers as Record<string, string>),
-  };
+  const headers = new Headers(options.headers);
+  if (!(options.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   const url = `${Config.apiUrl}${endpoint}`;
@@ -130,5 +130,22 @@ export const workspacesApi = {
   delete: (id: string): Promise<void> =>
     apiFetch<void>(`/workspaces/${id}`, {
       method: "DELETE",
+    }),
+};
+
+export const documentsApi = {
+  list: (workspaceId: string): Promise<Document[]> => apiFetch(`/workspaces/${workspaceId}/documents`),
+  upload: (workspaceId: string, file: File, chunkSize: number): Promise<Document> => {
+    const body = new FormData();
+    body.append("file", file);
+    body.append("chunk_size", String(chunkSize));
+    body.append("chunk_overlap", "64");
+    return apiFetch(`/workspaces/${workspaceId}/documents`, { method: "POST", body });
+  },
+  delete: (workspaceId: string, documentId: string): Promise<void> =>
+    apiFetch(`/workspaces/${workspaceId}/documents/${documentId}`, { method: "DELETE" }),
+  search: (workspaceId: string, query: string, topK: number): Promise<SearchResult[]> =>
+    apiFetch(`/workspaces/${workspaceId}/search`, {
+      method: "POST", body: JSON.stringify({ query, top_k: topK }),
     }),
 };

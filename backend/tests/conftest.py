@@ -34,6 +34,12 @@ def setup_test_db():
     Base.metadata.drop_all(bind=engine)
 
 
+@pytest.fixture(autouse=True)
+def isolate_upload_storage(tmp_path, monkeypatch):
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "UPLOAD_DIR", tmp_path / "uploads")
+
+
 @pytest.fixture
 def db_session():
     """Yield a database session connected to the test database."""

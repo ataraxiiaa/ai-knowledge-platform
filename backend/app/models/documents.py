@@ -2,12 +2,13 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, String, Uuid, func
+from sqlalchemy import DateTime, ForeignKey, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.models.chunks import Chunk
     from app.models.workspaces import Workspace
 
 
@@ -28,6 +29,11 @@ class Document(Base):
     filename: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
+    )
+    storage_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    chunks: Mapped[list["Chunk"]] = relationship(
+        "Chunk", back_populates="document", cascade="all, delete-orphan",
     )
     status: Mapped[str] = mapped_column(
         String(50),

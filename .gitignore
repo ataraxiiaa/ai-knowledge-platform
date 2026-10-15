@@ -7,3 +7,5 @@ node_modules
 .pytest_cache
 *.tsbuildinfo
 .test-tmp-*/
+backend/storage/
+backend/.cache/
