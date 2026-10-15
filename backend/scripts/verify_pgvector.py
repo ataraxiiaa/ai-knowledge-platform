@@ -1,11 +1,15 @@
 """End-to-end smoke test. PHASE3_TEST_DATABASE_URL must target an EMPTY disposable database."""
 import os
+import argparse
 from pathlib import Path
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--chat", action="store_true", help="Also call the configured LLM with synthetic PDF text and validate citations")
+args = parser.parse_args()
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tests"))
 
@@ -60,6 +64,24 @@ with TemporaryDirectory(prefix="pgvector-upload-", dir=ROOT / ".cache") as stora
         assert hits[0]["page"] == 1 and -1 <= hits[0]["similarity"] <= 1
         assert client.post(f"/workspaces/{workspace}/search", headers=other_headers, json={"query": "dog"}).status_code == 404
         assert client.post(f"/workspaces/{other_workspace}/search", headers=other_headers, json={"query": "dog"}).json() == []
+        if args.chat:
+            answer = client.post(f"/workspaces/{workspace}/chat", headers=headers,
+                                json={"message": "What is a puppy?"})
+            assert answer.status_code == 200, answer.text
+            data = answer.json()
+            assert data["status"] == "answered" and data["sources"], data
+            context = {hit["chunk_id"]: hit for hit in data["retrieved_chunks"]}
+            for source in data["sources"]:
+                assert source["document_id"] == document["id"] and source["page"] == 1
+                assert source["document"] == "dogs.pdf"
+                assert source["quote"] in context[source["chunk_id"]]["content"]
+                assert f"[{source['id']}]" in data["answer"]
+            assert client.post(f"/workspaces/{workspace}/chat", headers=other_headers,
+                               json={"message": "What is a puppy?"}).status_code == 404
+            empty = client.post(f"/workspaces/{other_workspace}/chat", headers=other_headers,
+                                json={"message": "What is a puppy?"}).json()
+            assert empty["status"] == "insufficient_evidence" and empty["sources"] == []
+            print("PASS: real retrieval -> configured LLM -> validated document/page evidence; chat tenant isolation")
         with engine.connect() as connection:
             assert connection.scalar(text("SELECT vector_dims(embedding) FROM chunks LIMIT 1")) == 384
             rows = connection.execute(text("SELECT embedding <=> embedding FROM chunks")).scalars().all()

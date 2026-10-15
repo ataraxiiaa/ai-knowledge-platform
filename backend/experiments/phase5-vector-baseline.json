@@ -1,0 +1,666 @@
+{
+  "recorded_at": "2026-10-15T19:45:21.639511+00:00",
+  "model": "BAAI/bge-small-en-v1.5",
+  "execution_provider": "CPUExecutionProvider",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.14.6",
+  "corpus_sha256": "3c688318befa76a04593d24129d665c23fda2140fbeb640fb174a116fc045393",
+  "source_characters": 7122,
+  "query_count": 8,
+  "initial_model_load_and_query_embedding_seconds": 1.321388799999113,
+  "word_cosines": {
+    "dog_puppy": 0.8670542537850312,
+    "dog_screwdriver": 0.5952450989535479
+  },
+  "limitations": "Small authored English corpus; one run; in-memory exact cosine, not database latency. Evidence must fit entirely inside one chunk. These are smoke measurements, not production quality estimates.",
+  "runs": [
+    {
+      "chunk_size": 256,
+      "chunk_unit": "characters",
+      "overlap": 64,
+      "chunk_count": 37,
+      "embedded_characters": 9170,
+      "vector_payload_bytes_float32": 56832,
+      "embedding_seconds_warm": 0.5215036999998119,
+      "exact_search_ms_all_queries": 0.7146000007196562,
+      "mean_reciprocal_rank": 0.7291666666666666,
+      "hit_at_1": 0.5,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "queries": [
+        {
+          "query": "How should I teach a young canine to follow instructions?",
+          "evidence": "Puppies learn commands through short sessions with immediate positive rewards.",
+          "first_evidence_rank": 2,
+          "top_3": [
+            {
+              "page": 1,
+              "chunk_index": 3,
+              "score": 0.7081111857442941,
+              "content": "to repeat than long, exhausting drills. The trainer should reward the behavior immediately so the animal can associate its action with the reward. Consistency between family members matters because contradictory cues make learning harder. Puppies learn com"
+            },
+            {
+              "page": 1,
+              "chunk_index": 4,
+              "score": 0.7029879960955947,
+              "content": "cause contradictory cues make learning harder. Puppies learn commands through short sessions with immediate positive rewards. This principle also applies when an older dog learns a new behavior. An adoption record contains the animal's name, approximate ag"
+            },
+            {
+              "page": 1,
+              "chunk_index": 1,
+              "score": 0.6886620155454916,
+              "content": "er prepares a quiet sleeping place, clean water, and a predictable routine before the animal arrives. Young animals can be nervous in unfamiliar rooms and should be allowed to explore without being forced into contact. Training uses rewards for desired beh"
+            }
+          ]
+        },
+        {
+          "query": "What makes faint stars harder to see from a city?",
+          "evidence": "Light pollution reduces the contrast of faint astronomical targets against the sky.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 2,
+              "chunk_index": 12,
+              "score": 0.7017550701115788,
+              "content": " longer exposure than the eye can comfortably observe. Light pollution reduces the contrast of faint astronomical targets against the sky. Moving to a darker site can therefore improve an observation without changing the instrument. A planet and a star can"
+            },
+            {
+              "page": 2,
+              "chunk_index": 8,
+              "score": 0.6935266575618713,
+              "content": "and can reveal dimmer objects. Magnification alone is not a measure of telescope quality because atmospheric turbulence and the instrument's optics also affect the image. The observer checks a star chart before going outside and records the date, approxima"
+            },
+            {
+              "page": 2,
+              "chunk_index": 7,
+              "score": 0.6780399430007102,
+              "content": "A telescope gathers light from distant objects. The observer chooses a location away from bright streetlights and allows their eyes to adapt to darkness. A larger aperture collects more light and can reveal dimmer objects. Magnification alone is not a meas"
+            }
+          ]
+        },
+        {
+          "query": "How are optical and radio observing instruments different?",
+          "evidence": "An optical telescope collects visible light; a radio telescope detects radio waves.",
+          "first_evidence_rank": 2,
+          "top_3": [
+            {
+              "page": 2,
+              "chunk_index": 10,
+              "score": 0.7963611670229016,
+              "content": "cts visible light; a radio telescope detects radio waves. Both instruments investigate celestial objects but operate on different parts of the electromagnetic spectrum. A stable mount helps keep the target in view. Tracking becomes useful when the apparent"
+            },
+            {
+              "page": 2,
+              "chunk_index": 9,
+              "score": 0.7764667018137474,
+              "content": " star chart before going outside and records the date, approximate sky conditions, and equipment used. These notes make observations easier to compare across nights. An optical telescope collects visible light; a radio telescope detects radio waves. Both i"
+            },
+            {
+              "page": 2,
+              "chunk_index": 8,
+              "score": 0.7405140281175592,
+              "content": "and can reveal dimmer objects. Magnification alone is not a measure of telescope quality because atmospheric turbulence and the instrument's optics also affect the image. The observer checks a star chart before going outside and records the date, approxima"
+            }
+          ]
+        },
+        {
+          "query": "Why does heat shorten the useful life of a rechargeable cell?",
+          "evidence": "Repeated operation at high temperatures can accelerate battery degradation.",
+          "first_evidence_rank": 2,
+          "top_3": [
+            {
+              "page": 3,
+              "chunk_index": 19,
+              "score": 0.7348911240749844,
+              "content": "ssive heat helps preserve its useful life. A demonstration circuit might contain a lamp, switch, and rechargeable cell, but that simple arrangement does not describe the protective design of a commercial battery pack. Engineers also consider mechanical pro"
+            },
+            {
+              "page": 3,
+              "chunk_index": 18,
+              "score": 0.7201482364931203,
+              "content": "agement system monitors operating conditions and can limit charging or discharging. Repeated operation at high temperatures can accelerate battery degradation. Keeping a battery away from excessive heat helps preserve its useful life. A demonstration circu"
+            },
+            {
+              "page": 3,
+              "chunk_index": 14,
+              "score": 0.710783372840726,
+              "content": "A rechargeable battery stores energy through electrochemical reactions. During use, chemical processes support a flow of electric charge through an external circuit. A charger supplies energy to reverse suitable reactions in a rechargeable cell. The device"
+            }
+          ]
+        },
+        {
+          "query": "Can giving plants too much water harm their roots?",
+          "evidence": "Overwatering can reduce the oxygen available to roots.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 4,
+              "chunk_index": 25,
+              "score": 0.7788468392028035,
+              "content": " a dry week from a problem with drainage. Plants need water, but roots also require oxygen. Overwatering can reduce the oxygen available to roots. A wilted plant is therefore not always asking for more water. The gardener checks the soil and considers rece"
+            },
+            {
+              "page": 4,
+              "chunk_index": 26,
+              "score": 0.6753824025018524,
+              "content": " for more water. The gardener checks the soil and considers recent conditions before changing the watering schedule. A layer of mulch can reduce evaporation from the soil surface. It also changes the soil environment, so its thickness and placement should "
+            },
+            {
+              "page": 4,
+              "chunk_index": 22,
+              "score": 0.6496261903998027,
+              "content": "A gardener studies soil before deciding how to water a vegetable bed. Soil texture affects how water moves and how much air remains around the roots. A sandy bed can drain quickly, while a compacted bed may hold water near the surface. The gardener checks "
+            }
+          ]
+        },
+        {
+          "query": "What can I add to improve the structure of garden soil?",
+          "evidence": "Compost adds organic matter and can improve soil structure.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 4,
+              "chunk_index": 23,
+              "score": 0.7557267588995501,
+              "content": "pacted bed may hold water near the surface. The gardener checks moisture below the surface rather than judging only by the appearance of the top layer. Compost adds organic matter and can improve soil structure. It is mixed thoughtfully with the existing s"
+            },
+            {
+              "page": 4,
+              "chunk_index": 26,
+              "score": 0.7225984977085452,
+              "content": " for more water. The gardener checks the soil and considers recent conditions before changing the watering schedule. A layer of mulch can reduce evaporation from the soil surface. It also changes the soil environment, so its thickness and placement should "
+            },
+            {
+              "page": 4,
+              "chunk_index": 22,
+              "score": 0.7020846469246086,
+              "content": "A gardener studies soil before deciding how to water a vegetable bed. Soil texture affects how water moves and how much air remains around the roots. A sandy bed can drain quickly, while a compacted bed may hold water near the surface. The gardener checks "
+            }
+          ]
+        },
+        {
+          "query": "What is the speed versus accuracy tradeoff of approximate nearest neighbor indexing?",
+          "evidence": "Approximate vector indexes trade some retrieval recall for lower query latency.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 5,
+              "chunk_index": 33,
+              "score": 0.8177594600612768,
+              "content": "s is a useful baseline because it returns the actual nearest neighbors under the chosen distance measure. Approximate vector indexes trade some retrieval recall for lower query latency. HNSW organizes connections between vectors so a search can visit promi"
+            },
+            {
+              "page": 5,
+              "chunk_index": 36,
+              "score": 0.8083359654129146,
+              "content": "nearest neighbors if the table contains vectors. A retrieval system should inspect source text and evaluate relevance rather than assuming a high rank proves that an answer exists."
+            },
+            {
+              "page": 5,
+              "chunk_index": 35,
+              "score": 0.7658157477028132,
+              "content": "dding such an index, measure the exact-search workload on a realistic corpus. Top-k is the number of nearest results requested, not a minimum similarity guarantee. Even an unrelated query has nearest neighbors if the table contains vectors. A retrieval sys"
+            }
+          ]
+        },
+        {
+          "query": "Does asking for five nearest passages guarantee they are relevant?",
+          "evidence": "Top-k is the number of nearest results requested, not a minimum similarity guarantee.",
+          "first_evidence_rank": 3,
+          "top_3": [
+            {
+              "page": 5,
+              "chunk_index": 36,
+              "score": 0.7035895718346226,
+              "content": "nearest neighbors if the table contains vectors. A retrieval system should inspect source text and evaluate relevance rather than assuming a high rank proves that an answer exists."
+            },
+            {
+              "page": 5,
+              "chunk_index": 33,
+              "score": 0.690840533622574,
+              "content": "s is a useful baseline because it returns the actual nearest neighbors under the chosen distance measure. Approximate vector indexes trade some retrieval recall for lower query latency. HNSW organizes connections between vectors so a search can visit promi"
+            },
+            {
+              "page": 5,
+              "chunk_index": 35,
+              "score": 0.6555790396562711,
+              "content": "dding such an index, measure the exact-search workload on a realistic corpus. Top-k is the number of nearest results requested, not a minimum similarity guarantee. Even an unrelated query has nearest neighbors if the table contains vectors. A retrieval sys"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chunk_size": 512,
+      "chunk_unit": "characters",
+      "overlap": 64,
+      "chunk_count": 17,
+      "embedded_characters": 7890,
+      "vector_payload_bytes_float32": 26112,
+      "embedding_seconds_warm": 1.12602539999898,
+      "exact_search_ms_all_queries": 0.5008999996789498,
+      "mean_reciprocal_rank": 0.8125,
+      "hit_at_1": 0.625,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "queries": [
+        {
+          "query": "How should I teach a young canine to follow instructions?",
+          "evidence": "Puppies learn commands through short sessions with immediate positive rewards.",
+          "first_evidence_rank": 2,
+          "top_3": [
+            {
+              "page": 1,
+              "chunk_index": 2,
+              "score": 0.7029511051418059,
+              "content": "is principle also applies when an older dog learns a new behavior. An adoption record contains the animal's name, approximate age, and the contact information of its current caregiver. Those administrative details do not explain how to teach a command. The shelter recommends a daily routine but adapts its schedule to the animal's age and comfort. A training journal records the cue, environment, response, and reward so the caregiver can notice gradual progress rather than expecting instant obedience."
+            },
+            {
+              "page": 1,
+              "chunk_index": 1,
+              "score": 0.6967432743899238,
+              "content": "avior rather than punishment. A small food reward can follow a successful response to a cue. Short practice sessions are easier to repeat than long, exhausting drills. The trainer should reward the behavior immediately so the animal can associate its action with the reward. Consistency between family members matters because contradictory cues make learning harder. Puppies learn commands through short sessions with immediate positive rewards. This principle also applies when an older dog learns a new behavio"
+            },
+            {
+              "page": 1,
+              "chunk_index": 0,
+              "score": 0.650974117804424,
+              "content": "A puppy is a young dog. The words puppy and dog describe related animals even though their spellings are different. A shelter introduces a newly adopted animal to its home gradually. The handler prepares a quiet sleeping place, clean water, and a predictable routine before the animal arrives. Young animals can be nervous in unfamiliar rooms and should be allowed to explore without being forced into contact. Training uses rewards for desired behavior rather than punishment. A small food reward can follow a s"
+            }
+          ]
+        },
+        {
+          "query": "What makes faint stars harder to see from a city?",
+          "evidence": "Light pollution reduces the contrast of faint astronomical targets against the sky.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 2,
+              "chunk_index": 5,
+              "score": 0.6977089034448055,
+              "content": "ield. A photograph of a faint object can accumulate light over a longer exposure than the eye can comfortably observe. Light pollution reduces the contrast of faint astronomical targets against the sky. Moving to a darker site can therefore improve an observation without changing the instrument. A planet and a star can both look bright, yet they produce or reflect light in different ways. Astronomers combine several measurements rather than treating one bright image as a complete explanation of an object."
+            },
+            {
+              "page": 2,
+              "chunk_index": 3,
+              "score": 0.6700971836009423,
+              "content": "A telescope gathers light from distant objects. The observer chooses a location away from bright streetlights and allows their eyes to adapt to darkness. A larger aperture collects more light and can reveal dimmer objects. Magnification alone is not a measure of telescope quality because atmospheric turbulence and the instrument's optics also affect the image. The observer checks a star chart before going outside and records the date, approximate sky conditions, and equipment used. These notes make observat"
+            },
+            {
+              "page": 2,
+              "chunk_index": 4,
+              "score": 0.5840249801479855,
+              "content": "te sky conditions, and equipment used. These notes make observations easier to compare across nights. An optical telescope collects visible light; a radio telescope detects radio waves. Both instruments investigate celestial objects but operate on different parts of the electromagnetic spectrum. A stable mount helps keep the target in view. Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field. A photograph of a faint object can accumulate light over a"
+            }
+          ]
+        },
+        {
+          "query": "How are optical and radio observing instruments different?",
+          "evidence": "An optical telescope collects visible light; a radio telescope detects radio waves.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 2,
+              "chunk_index": 4,
+              "score": 0.8137331484333458,
+              "content": "te sky conditions, and equipment used. These notes make observations easier to compare across nights. An optical telescope collects visible light; a radio telescope detects radio waves. Both instruments investigate celestial objects but operate on different parts of the electromagnetic spectrum. A stable mount helps keep the target in view. Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field. A photograph of a faint object can accumulate light over a"
+            },
+            {
+              "page": 2,
+              "chunk_index": 3,
+              "score": 0.7616890105357595,
+              "content": "A telescope gathers light from distant objects. The observer chooses a location away from bright streetlights and allows their eyes to adapt to darkness. A larger aperture collects more light and can reveal dimmer objects. Magnification alone is not a measure of telescope quality because atmospheric turbulence and the instrument's optics also affect the image. The observer checks a star chart before going outside and records the date, approximate sky conditions, and equipment used. These notes make observat"
+            },
+            {
+              "page": 2,
+              "chunk_index": 5,
+              "score": 0.7026932679844248,
+              "content": "ield. A photograph of a faint object can accumulate light over a longer exposure than the eye can comfortably observe. Light pollution reduces the contrast of faint astronomical targets against the sky. Moving to a darker site can therefore improve an observation without changing the instrument. A planet and a star can both look bright, yet they produce or reflect light in different ways. Astronomers combine several measurements rather than treating one bright image as a complete explanation of an object."
+            }
+          ]
+        },
+        {
+          "query": "Why does heat shorten the useful life of a rechargeable cell?",
+          "evidence": "Repeated operation at high temperatures can accelerate battery degradation.",
+          "first_evidence_rank": 2,
+          "top_3": [
+            {
+              "page": 3,
+              "chunk_index": 8,
+              "score": 0.7693167909123072,
+              "content": "accelerate battery degradation. Keeping a battery away from excessive heat helps preserve its useful life. A demonstration circuit might contain a lamp, switch, and rechargeable cell, but that simple arrangement does not describe the protective design of a commercial battery pack. Engineers also consider mechanical protection, thermal behavior, and manufacturing variation. A single successful charge does not establish long-term durability. A useful experiment measures changes over repeated cycles while hold"
+            },
+            {
+              "page": 3,
+              "chunk_index": 7,
+              "score": 0.7230862310799487,
+              "content": "does not by itself determine how fast a device can charge. Temperature, internal resistance, and the charger also affect practical behavior. A technician records the load, ambient temperature, and test duration when comparing cells. Comparing numbers from tests with different conditions can be misleading. A battery management system monitors operating conditions and can limit charging or discharging. Repeated operation at high temperatures can accelerate battery degradation. Keeping a battery away from exce"
+            },
+            {
+              "page": 3,
+              "chunk_index": 6,
+              "score": 0.715546472662738,
+              "content": "A rechargeable battery stores energy through electrochemical reactions. During use, chemical processes support a flow of electric charge through an external circuit. A charger supplies energy to reverse suitable reactions in a rechargeable cell. The device manufacturer specifies the charging conditions and protective circuitry for a particular battery. Battery capacity describes how much charge a cell can deliver under specified conditions. It does not by itself determine how fast a device can charge. Tempe"
+            }
+          ]
+        },
+        {
+          "query": "Can giving plants too much water harm their roots?",
+          "evidence": "Overwatering can reduce the oxygen available to roots.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 4,
+              "chunk_index": 11,
+              "score": 0.7402149352863948,
+              "content": "oil rather than treated as a universal replacement for every other material. A record of rainfall and watering helps distinguish a dry week from a problem with drainage. Plants need water, but roots also require oxygen. Overwatering can reduce the oxygen available to roots. A wilted plant is therefore not always asking for more water. The gardener checks the soil and considers recent conditions before changing the watering schedule. A layer of mulch can reduce evaporation from the soil surface. It also chan"
+            },
+            {
+              "page": 4,
+              "chunk_index": 12,
+              "score": 0.6467410613410194,
+              "content": "mulch can reduce evaporation from the soil surface. It also changes the soil environment, so its thickness and placement should match the planting situation. A garden trial compares similar plants in nearby plots and records both the treatment and the weather. Observations taken on one unusually hot afternoon are insufficient to establish a general rule. Good notes make it possible to separate a plausible explanation from a coincidence."
+            },
+            {
+              "page": 4,
+              "chunk_index": 10,
+              "score": 0.6214221061196947,
+              "content": "A gardener studies soil before deciding how to water a vegetable bed. Soil texture affects how water moves and how much air remains around the roots. A sandy bed can drain quickly, while a compacted bed may hold water near the surface. The gardener checks moisture below the surface rather than judging only by the appearance of the top layer. Compost adds organic matter and can improve soil structure. It is mixed thoughtfully with the existing soil rather than treated as a universal replacement for every oth"
+            }
+          ]
+        },
+        {
+          "query": "What can I add to improve the structure of garden soil?",
+          "evidence": "Compost adds organic matter and can improve soil structure.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 4,
+              "chunk_index": 10,
+              "score": 0.7483977897414261,
+              "content": "A gardener studies soil before deciding how to water a vegetable bed. Soil texture affects how water moves and how much air remains around the roots. A sandy bed can drain quickly, while a compacted bed may hold water near the surface. The gardener checks moisture below the surface rather than judging only by the appearance of the top layer. Compost adds organic matter and can improve soil structure. It is mixed thoughtfully with the existing soil rather than treated as a universal replacement for every oth"
+            },
+            {
+              "page": 4,
+              "chunk_index": 12,
+              "score": 0.6957419767047726,
+              "content": "mulch can reduce evaporation from the soil surface. It also changes the soil environment, so its thickness and placement should match the planting situation. A garden trial compares similar plants in nearby plots and records both the treatment and the weather. Observations taken on one unusually hot afternoon are insufficient to establish a general rule. Good notes make it possible to separate a plausible explanation from a coincidence."
+            },
+            {
+              "page": 4,
+              "chunk_index": 11,
+              "score": 0.6246132091422659,
+              "content": "oil rather than treated as a universal replacement for every other material. A record of rainfall and watering helps distinguish a dry week from a problem with drainage. Plants need water, but roots also require oxygen. Overwatering can reduce the oxygen available to roots. A wilted plant is therefore not always asking for more water. The gardener checks the soil and considers recent conditions before changing the watering schedule. A layer of mulch can reduce evaporation from the soil surface. It also chan"
+            }
+          ]
+        },
+        {
+          "query": "What is the speed versus accuracy tradeoff of approximate nearest neighbor indexing?",
+          "evidence": "Approximate vector indexes trade some retrieval recall for lower query latency.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 5,
+              "chunk_index": 14,
+              "score": 0.8104505001303137,
+              "content": "oes not automatically grant or deny access to a caller. An ordinary index can accelerate some lookups by storing a structure organized around selected values. Maintaining indexes also consumes storage and adds work when rows change. Exact vector search compares the query vector against every eligible stored vector. This is a useful baseline because it returns the actual nearest neighbors under the chosen distance measure. Approximate vector indexes trade some retrieval recall for lower query latency. HNSW o"
+            },
+            {
+              "page": 5,
+              "chunk_index": 16,
+              "score": 0.8083359654129146,
+              "content": "nearest neighbors if the table contains vectors. A retrieval system should inspect source text and evaluate relevance rather than assuming a high rank proves that an answer exists."
+            },
+            {
+              "page": 5,
+              "chunk_index": 15,
+              "score": 0.7437834312370458,
+              "content": "exes trade some retrieval recall for lower query latency. HNSW organizes connections between vectors so a search can visit promising candidates instead of scanning every row. Its settings affect memory use, index construction, and search behavior. Before adding such an index, measure the exact-search workload on a realistic corpus. Top-k is the number of nearest results requested, not a minimum similarity guarantee. Even an unrelated query has nearest neighbors if the table contains vectors. A retrieval sys"
+            }
+          ]
+        },
+        {
+          "query": "Does asking for five nearest passages guarantee they are relevant?",
+          "evidence": "Top-k is the number of nearest results requested, not a minimum similarity guarantee.",
+          "first_evidence_rank": 2,
+          "top_3": [
+            {
+              "page": 5,
+              "chunk_index": 16,
+              "score": 0.7035895718346226,
+              "content": "nearest neighbors if the table contains vectors. A retrieval system should inspect source text and evaluate relevance rather than assuming a high rank proves that an answer exists."
+            },
+            {
+              "page": 5,
+              "chunk_index": 15,
+              "score": 0.6755313928741224,
+              "content": "exes trade some retrieval recall for lower query latency. HNSW organizes connections between vectors so a search can visit promising candidates instead of scanning every row. Its settings affect memory use, index construction, and search behavior. Before adding such an index, measure the exact-search workload on a realistic corpus. Top-k is the number of nearest results requested, not a minimum similarity guarantee. Even an unrelated query has nearest neighbors if the table contains vectors. A retrieval sys"
+            },
+            {
+              "page": 5,
+              "chunk_index": 14,
+              "score": 0.6580704743097999,
+              "content": "oes not automatically grant or deny access to a caller. An ordinary index can accelerate some lookups by storing a structure organized around selected values. Maintaining indexes also consumes storage and adds work when rows change. Exact vector search compares the query vector against every eligible stored vector. This is a useful baseline because it returns the actual nearest neighbors under the chosen distance measure. Approximate vector indexes trade some retrieval recall for lower query latency. HNSW o"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "chunk_size": 1024,
+      "chunk_unit": "characters",
+      "overlap": 64,
+      "chunk_count": 10,
+      "embedded_characters": 7442,
+      "vector_payload_bytes_float32": 15360,
+      "embedding_seconds_warm": 1.4297311000009358,
+      "exact_search_ms_all_queries": 0.3723999998328509,
+      "mean_reciprocal_rank": 0.875,
+      "hit_at_1": 0.75,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "queries": [
+        {
+          "query": "How should I teach a young canine to follow instructions?",
+          "evidence": "Puppies learn commands through short sessions with immediate positive rewards.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 1,
+              "chunk_index": 0,
+              "score": 0.7025195830902892,
+              "content": "A puppy is a young dog. The words puppy and dog describe related animals even though their spellings are different. A shelter introduces a newly adopted animal to its home gradually. The handler prepares a quiet sleeping place, clean water, and a predictable routine before the animal arrives. Young animals can be nervous in unfamiliar rooms and should be allowed to explore without being forced into contact. Training uses rewards for desired behavior rather than punishment. A small food reward can follow a successful response to a cue. Short practice sessions are easier to repeat than long, exhausting drills. The trainer should reward the behavior immediately so the animal can associate its action with the reward. Consistency between family members matters because contradictory cues make learning harder. Puppies learn commands through short sessions with immediate positive rewards. This principle also applies when an older dog learns a new behavior. An adoption record contains the animal's name, approximate ag"
+            },
+            {
+              "page": 1,
+              "chunk_index": 1,
+              "score": 0.6848184469111974,
+              "content": "r. An adoption record contains the animal's name, approximate age, and the contact information of its current caregiver. Those administrative details do not explain how to teach a command. The shelter recommends a daily routine but adapts its schedule to the animal's age and comfort. A training journal records the cue, environment, response, and reward so the caregiver can notice gradual progress rather than expecting instant obedience."
+            },
+            {
+              "page": 3,
+              "chunk_index": 5,
+              "score": 0.48003636007239686,
+              "content": "ssive heat helps preserve its useful life. A demonstration circuit might contain a lamp, switch, and rechargeable cell, but that simple arrangement does not describe the protective design of a commercial battery pack. Engineers also consider mechanical protection, thermal behavior, and manufacturing variation. A single successful charge does not establish long-term durability. A useful experiment measures changes over repeated cycles while holding the test conditions as constant as possible."
+            }
+          ]
+        },
+        {
+          "query": "What makes faint stars harder to see from a city?",
+          "evidence": "Light pollution reduces the contrast of faint astronomical targets against the sky.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 2,
+              "chunk_index": 3,
+              "score": 0.6929640800505842,
+              "content": " longer exposure than the eye can comfortably observe. Light pollution reduces the contrast of faint astronomical targets against the sky. Moving to a darker site can therefore improve an observation without changing the instrument. A planet and a star can both look bright, yet they produce or reflect light in different ways. Astronomers combine several measurements rather than treating one bright image as a complete explanation of an object."
+            },
+            {
+              "page": 2,
+              "chunk_index": 2,
+              "score": 0.632178604482532,
+              "content": "A telescope gathers light from distant objects. The observer chooses a location away from bright streetlights and allows their eyes to adapt to darkness. A larger aperture collects more light and can reveal dimmer objects. Magnification alone is not a measure of telescope quality because atmospheric turbulence and the instrument's optics also affect the image. The observer checks a star chart before going outside and records the date, approximate sky conditions, and equipment used. These notes make observations easier to compare across nights. An optical telescope collects visible light; a radio telescope detects radio waves. Both instruments investigate celestial objects but operate on different parts of the electromagnetic spectrum. A stable mount helps keep the target in view. Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field. A photograph of a faint object can accumulate light over a longer exposure than the eye can comfortably observe. Light pol"
+            },
+            {
+              "page": 4,
+              "chunk_index": 7,
+              "score": 0.5061097107110032,
+              "content": "ges the soil environment, so its thickness and placement should match the planting situation. A garden trial compares similar plants in nearby plots and records both the treatment and the weather. Observations taken on one unusually hot afternoon are insufficient to establish a general rule. Good notes make it possible to separate a plausible explanation from a coincidence."
+            }
+          ]
+        },
+        {
+          "query": "How are optical and radio observing instruments different?",
+          "evidence": "An optical telescope collects visible light; a radio telescope detects radio waves.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 2,
+              "chunk_index": 2,
+              "score": 0.7999771606965255,
+              "content": "A telescope gathers light from distant objects. The observer chooses a location away from bright streetlights and allows their eyes to adapt to darkness. A larger aperture collects more light and can reveal dimmer objects. Magnification alone is not a measure of telescope quality because atmospheric turbulence and the instrument's optics also affect the image. The observer checks a star chart before going outside and records the date, approximate sky conditions, and equipment used. These notes make observations easier to compare across nights. An optical telescope collects visible light; a radio telescope detects radio waves. Both instruments investigate celestial objects but operate on different parts of the electromagnetic spectrum. A stable mount helps keep the target in view. Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field. A photograph of a faint object can accumulate light over a longer exposure than the eye can comfortably observe. Light pol"
+            },
+            {
+              "page": 2,
+              "chunk_index": 3,
+              "score": 0.6863752008678822,
+              "content": " longer exposure than the eye can comfortably observe. Light pollution reduces the contrast of faint astronomical targets against the sky. Moving to a darker site can therefore improve an observation without changing the instrument. A planet and a star can both look bright, yet they produce or reflect light in different ways. Astronomers combine several measurements rather than treating one bright image as a complete explanation of an object."
+            },
+            {
+              "page": 4,
+              "chunk_index": 7,
+              "score": 0.591599983017513,
+              "content": "ges the soil environment, so its thickness and placement should match the planting situation. A garden trial compares similar plants in nearby plots and records both the treatment and the weather. Observations taken on one unusually hot afternoon are insufficient to establish a general rule. Good notes make it possible to separate a plausible explanation from a coincidence."
+            }
+          ]
+        },
+        {
+          "query": "Why does heat shorten the useful life of a rechargeable cell?",
+          "evidence": "Repeated operation at high temperatures can accelerate battery degradation.",
+          "first_evidence_rank": 2,
+          "top_3": [
+            {
+              "page": 3,
+              "chunk_index": 5,
+              "score": 0.771439396032327,
+              "content": "ssive heat helps preserve its useful life. A demonstration circuit might contain a lamp, switch, and rechargeable cell, but that simple arrangement does not describe the protective design of a commercial battery pack. Engineers also consider mechanical protection, thermal behavior, and manufacturing variation. A single successful charge does not establish long-term durability. A useful experiment measures changes over repeated cycles while holding the test conditions as constant as possible."
+            },
+            {
+              "page": 3,
+              "chunk_index": 4,
+              "score": 0.7517970201744331,
+              "content": "A rechargeable battery stores energy through electrochemical reactions. During use, chemical processes support a flow of electric charge through an external circuit. A charger supplies energy to reverse suitable reactions in a rechargeable cell. The device manufacturer specifies the charging conditions and protective circuitry for a particular battery. Battery capacity describes how much charge a cell can deliver under specified conditions. It does not by itself determine how fast a device can charge. Temperature, internal resistance, and the charger also affect practical behavior. A technician records the load, ambient temperature, and test duration when comparing cells. Comparing numbers from tests with different conditions can be misleading. A battery management system monitors operating conditions and can limit charging or discharging. Repeated operation at high temperatures can accelerate battery degradation. Keeping a battery away from excessive heat helps preserve its useful life. A demonstration circu"
+            },
+            {
+              "page": 4,
+              "chunk_index": 7,
+              "score": 0.5243248101680211,
+              "content": "ges the soil environment, so its thickness and placement should match the planting situation. A garden trial compares similar plants in nearby plots and records both the treatment and the weather. Observations taken on one unusually hot afternoon are insufficient to establish a general rule. Good notes make it possible to separate a plausible explanation from a coincidence."
+            }
+          ]
+        },
+        {
+          "query": "Can giving plants too much water harm their roots?",
+          "evidence": "Overwatering can reduce the oxygen available to roots.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 4,
+              "chunk_index": 6,
+              "score": 0.6681629649544369,
+              "content": "A gardener studies soil before deciding how to water a vegetable bed. Soil texture affects how water moves and how much air remains around the roots. A sandy bed can drain quickly, while a compacted bed may hold water near the surface. The gardener checks moisture below the surface rather than judging only by the appearance of the top layer. Compost adds organic matter and can improve soil structure. It is mixed thoughtfully with the existing soil rather than treated as a universal replacement for every other material. A record of rainfall and watering helps distinguish a dry week from a problem with drainage. Plants need water, but roots also require oxygen. Overwatering can reduce the oxygen available to roots. A wilted plant is therefore not always asking for more water. The gardener checks the soil and considers recent conditions before changing the watering schedule. A layer of mulch can reduce evaporation from the soil surface. It also changes the soil environment, so its thickness and placement should "
+            },
+            {
+              "page": 4,
+              "chunk_index": 7,
+              "score": 0.5935375741478651,
+              "content": "ges the soil environment, so its thickness and placement should match the planting situation. A garden trial compares similar plants in nearby plots and records both the treatment and the weather. Observations taken on one unusually hot afternoon are insufficient to establish a general rule. Good notes make it possible to separate a plausible explanation from a coincidence."
+            },
+            {
+              "page": 2,
+              "chunk_index": 3,
+              "score": 0.5092590937973566,
+              "content": " longer exposure than the eye can comfortably observe. Light pollution reduces the contrast of faint astronomical targets against the sky. Moving to a darker site can therefore improve an observation without changing the instrument. A planet and a star can both look bright, yet they produce or reflect light in different ways. Astronomers combine several measurements rather than treating one bright image as a complete explanation of an object."
+            }
+          ]
+        },
+        {
+          "query": "What can I add to improve the structure of garden soil?",
+          "evidence": "Compost adds organic matter and can improve soil structure.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 4,
+              "chunk_index": 6,
+              "score": 0.7212472856649719,
+              "content": "A gardener studies soil before deciding how to water a vegetable bed. Soil texture affects how water moves and how much air remains around the roots. A sandy bed can drain quickly, while a compacted bed may hold water near the surface. The gardener checks moisture below the surface rather than judging only by the appearance of the top layer. Compost adds organic matter and can improve soil structure. It is mixed thoughtfully with the existing soil rather than treated as a universal replacement for every other material. A record of rainfall and watering helps distinguish a dry week from a problem with drainage. Plants need water, but roots also require oxygen. Overwatering can reduce the oxygen available to roots. A wilted plant is therefore not always asking for more water. The gardener checks the soil and considers recent conditions before changing the watering schedule. A layer of mulch can reduce evaporation from the soil surface. It also changes the soil environment, so its thickness and placement should "
+            },
+            {
+              "page": 4,
+              "chunk_index": 7,
+              "score": 0.6626057115856913,
+              "content": "ges the soil environment, so its thickness and placement should match the planting situation. A garden trial compares similar plants in nearby plots and records both the treatment and the weather. Observations taken on one unusually hot afternoon are insufficient to establish a general rule. Good notes make it possible to separate a plausible explanation from a coincidence."
+            },
+            {
+              "page": 2,
+              "chunk_index": 3,
+              "score": 0.5294033758917073,
+              "content": " longer exposure than the eye can comfortably observe. Light pollution reduces the contrast of faint astronomical targets against the sky. Moving to a darker site can therefore improve an observation without changing the instrument. A planet and a star can both look bright, yet they produce or reflect light in different ways. Astronomers combine several measurements rather than treating one bright image as a complete explanation of an object."
+            }
+          ]
+        },
+        {
+          "query": "What is the speed versus accuracy tradeoff of approximate nearest neighbor indexing?",
+          "evidence": "Approximate vector indexes trade some retrieval recall for lower query latency.",
+          "first_evidence_rank": 2,
+          "top_3": [
+            {
+              "page": 5,
+              "chunk_index": 9,
+              "score": 0.7923760785745642,
+              "content": "rganizes connections between vectors so a search can visit promising candidates instead of scanning every row. Its settings affect memory use, index construction, and search behavior. Before adding such an index, measure the exact-search workload on a realistic corpus. Top-k is the number of nearest results requested, not a minimum similarity guarantee. Even an unrelated query has nearest neighbors if the table contains vectors. A retrieval system should inspect source text and evaluate relevance rather than assuming a high rank proves that an answer exists."
+            },
+            {
+              "page": 5,
+              "chunk_index": 8,
+              "score": 0.7356594327284104,
+              "content": "A relational database stores records in tables and connects related records through keys. A primary key identifies a row. A foreign key describes a reference from one table to another and can help prevent records from pointing to missing parents. In a workspace application, documents reference their workspace, while chunks reference their document. Authorization still needs to check which user owns the workspace. A relationship between tables does not automatically grant or deny access to a caller. An ordinary index can accelerate some lookups by storing a structure organized around selected values. Maintaining indexes also consumes storage and adds work when rows change. Exact vector search compares the query vector against every eligible stored vector. This is a useful baseline because it returns the actual nearest neighbors under the chosen distance measure. Approximate vector indexes trade some retrieval recall for lower query latency. HNSW organizes connections between vectors so a search can visit promi"
+            },
+            {
+              "page": 4,
+              "chunk_index": 7,
+              "score": 0.6073513785455484,
+              "content": "ges the soil environment, so its thickness and placement should match the planting situation. A garden trial compares similar plants in nearby plots and records both the treatment and the weather. Observations taken on one unusually hot afternoon are insufficient to establish a general rule. Good notes make it possible to separate a plausible explanation from a coincidence."
+            }
+          ]
+        },
+        {
+          "query": "Does asking for five nearest passages guarantee they are relevant?",
+          "evidence": "Top-k is the number of nearest results requested, not a minimum similarity guarantee.",
+          "first_evidence_rank": 1,
+          "top_3": [
+            {
+              "page": 5,
+              "chunk_index": 9,
+              "score": 0.6973134683843117,
+              "content": "rganizes connections between vectors so a search can visit promising candidates instead of scanning every row. Its settings affect memory use, index construction, and search behavior. Before adding such an index, measure the exact-search workload on a realistic corpus. Top-k is the number of nearest results requested, not a minimum similarity guarantee. Even an unrelated query has nearest neighbors if the table contains vectors. A retrieval system should inspect source text and evaluate relevance rather than assuming a high rank proves that an answer exists."
+            },
+            {
+              "page": 5,
+              "chunk_index": 8,
+              "score": 0.6354195392078045,
+              "content": "A relational database stores records in tables and connects related records through keys. A primary key identifies a row. A foreign key describes a reference from one table to another and can help prevent records from pointing to missing parents. In a workspace application, documents reference their workspace, while chunks reference their document. Authorization still needs to check which user owns the workspace. A relationship between tables does not automatically grant or deny access to a caller. An ordinary index can accelerate some lookups by storing a structure organized around selected values. Maintaining indexes also consumes storage and adds work when rows change. Exact vector search compares the query vector against every eligible stored vector. This is a useful baseline because it returns the actual nearest neighbors under the chosen distance measure. Approximate vector indexes trade some retrieval recall for lower query latency. HNSW organizes connections between vectors so a search can visit promi"
+            },
+            {
+              "page": 4,
+              "chunk_index": 7,
+              "score": 0.6261395440537292,
+              "content": "ges the soil environment, so its thickness and placement should match the planting situation. A garden trial compares similar plants in nearby plots and records both the treatment and the weather. Observations taken on one unusually hot afternoon are insufficient to establish a general rule. Good notes make it possible to separate a plausible explanation from a coincidence."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

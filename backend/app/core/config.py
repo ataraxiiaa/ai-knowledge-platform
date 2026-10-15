@@ -23,6 +23,21 @@ class Settings(BaseSettings):
     MAX_DOCUMENT_CHUNKS: int = Field(default=5000, ge=1)
     CHUNK_SIZE: int = Field(default=1024, ge=64, le=1024)
     CHUNK_OVERLAP: int = Field(default=64, ge=0)
+    LLM_BASE_URL: str = "http://localhost:11434/v1"
+    LLM_MODEL: str = ""
+    LLM_API_KEY: str = Field(default="", repr=False)
+    LLM_TIMEOUT_SECONDS: float = Field(default=60, gt=0, le=300)
+    RAG_TOP_K: int = Field(default=5, ge=1, le=20)
+
+    @field_validator("LLM_BASE_URL")
+    @classmethod
+    def validate_llm_url(cls, value: str) -> str:
+        from urllib.parse import urlsplit
+
+        url = urlsplit(value)
+        if url.scheme not in ("http", "https") or not url.hostname or url.username or url.password or url.query or url.fragment:
+            raise ValueError("LLM_BASE_URL must be an HTTP(S) base URL without credentials, query, or fragment")
+        return value.rstrip("/")
 
     @model_validator(mode="after")
     def validate_chunking(self):

@@ -13,10 +13,9 @@ from app.models.documents import Document
 from app.models.users import User
 from app.models.workspaces import Workspace
 from app.schemas.documents import DocumentResponse, SearchRequest, SearchResult
-from app.services.embeddings import embed_texts
+from app.services.retrieval import retrieve_passages
 from app.services.ingestion import ingest_document
 from app.services.storage import delete_document_file, store_pdf
-from app.services.text import IngestionError
 
 router = APIRouter(prefix="/workspaces", tags=["Documents"])
 logger = logging.getLogger(__name__)
@@ -109,25 +108,4 @@ def search_documents(
     db: Session = Depends(get_db),
     _vector_db: None = Depends(require_vector_database),
 ):
-    query = request.query.strip()
-    if not query:
-        raise HTTPException(422, "Query cannot be blank")
-    try:
-        vector = embed_texts([query])[0]
-    except IngestionError as exc:
-        raise HTTPException(422, str(exc)) from exc
-    except Exception as exc:
-        logger.exception("Query embedding failed")
-        raise HTTPException(503, "Embedding model unavailable. Please try again.") from exc
-    distance = Chunk.embedding.cosine_distance(vector)
-    rows = db.execute(
-        select(Chunk, Document.filename, distance.label("distance"))
-        .join(Document, Document.id == Chunk.document_id)
-        .where(Document.workspace_id == workspace.id, Document.status == "ready")
-        .order_by(distance, Chunk.id).limit(request.top_k)
-    ).all()
-    return [SearchResult(
-        chunk_id=chunk.id, document_id=chunk.document_id, filename=filename,
-        content=chunk.content, page=chunk.page, chunk_index=chunk.chunk_index,
-        similarity=max(-1.0, min(1.0, 1.0 - float(dist))), metadata=chunk.chunk_metadata,
-    ) for chunk, filename, dist in rows]
+    return retrieve_passages(request.query, request.top_k, workspace.id, db)

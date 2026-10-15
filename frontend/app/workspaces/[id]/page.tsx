@@ -8,26 +8,17 @@ import {
   FileText,
   MessageSquare,
   Sparkles,
-  Send,
   Loader2,
   Calendar,
   AlertCircle,
-  Bot,
-  User as UserIcon,
 } from "lucide-react";
+import { ChatPanel } from "@/components/chat-panel";
 import { DocumentsPanel } from "@/components/documents-panel";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { workspacesApi, ApiRequestError } from "@/lib/api";
 import { Workspace } from "@/types";
 
 type TabType = "documents" | "chat" | "research";
-
-interface ChatMessage {
-  id: string;
-  sender: "user" | "ai";
-  text: string;
-  timestamp: string;
-}
 
 function WorkspaceContent() {
   const params = useParams();
@@ -37,17 +28,6 @@ function WorkspaceContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("documents");
-
-  // Chat tab state
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "msg-1",
-      sender: "ai",
-      text: "Chat answers are not available yet. Open Documents and use passage search to find information in your uploaded PDFs.",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    },
-  ]);
-  const [chatInput, setChatInput] = useState("");
 
   // Research tab state
   const [researchNotes, setResearchNotes] = useState(
@@ -81,33 +61,6 @@ function WorkspaceContent() {
       isMounted = false;
     };
   }, [workspaceId]);
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-
-    const userText = chatInput.trim();
-    const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: "user",
-      text: userText,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    setChatInput("");
-
-    // Simulate AI response preview for Phase 2
-    setTimeout(() => {
-      const aiReply: ChatMessage = {
-        id: `msg-${Date.now() + 1}`,
-        sender: "ai",
-        text: `Received: "${userText}". This is a chat preview. Use Documents search to retrieve real passages from your PDFs.`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-      setMessages((prev) => [...prev, aiReply]);
-    }, 500);
-  };
 
   return (
     <DashboardShell>
@@ -212,70 +165,7 @@ function WorkspaceContent() {
             {activeTab === "documents" && <DocumentsPanel key={workspaceId} workspaceId={workspaceId} />}
 
             {/* TAB 2: CHAT */}
-            {activeTab === "chat" && (
-              <div className="flex h-[550px] flex-col rounded-2xl border border-gray-200 bg-white shadow-xs">
-                {/* Messages stream */}
-                <div className="flex-1 space-y-4 overflow-y-auto p-6">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex gap-3 ${
-                        msg.sender === "user" ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      {msg.sender === "ai" && (
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-                          <Bot className="h-4 w-4" />
-                        </div>
-                      )}
-                      <div
-                        className={`max-w-md rounded-2xl px-4 py-3 text-sm shadow-xs ${
-                          msg.sender === "user"
-                            ? "bg-indigo-600 text-white"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap">{msg.text}</p>
-                        <span
-                          className={`mt-1 block text-right text-[10px] ${
-                            msg.sender === "user" ? "text-indigo-200" : "text-gray-400"
-                          }`}
-                        >
-                          {msg.timestamp}
-                        </span>
-                      </div>
-                      {msg.sender === "user" && (
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-600">
-                          <UserIcon className="h-4 w-4" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Chat input box */}
-                <form
-                  onSubmit={handleSendMessage}
-                  className="flex items-center gap-2 border-t border-gray-200 p-4"
-                >
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder={`Ask questions about "${workspace.name}"...`}
-                    className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 shadow-xs focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!chatInput.trim()}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 disabled:opacity-50 transition"
-                  >
-                    <Send className="h-4 w-4" />
-                    <span>Send</span>
-                  </button>
-                </form>
-              </div>
-            )}
+            {activeTab === "chat" && <ChatPanel key={workspaceId} workspaceId={workspaceId} />}
 
             {/* TAB 3: RESEARCH */}
             {activeTab === "research" && (

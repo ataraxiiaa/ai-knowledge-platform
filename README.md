@@ -3,7 +3,8 @@
 A FastAPI and Next.js foundation for a workspace-based knowledge platform.
 Authentication and workspace creation/listing/retrieval/deletion are implemented.
 Phase 3 adds PDF ingestion, local CPU embeddings, pgvector storage, and semantic
-passage search. Chat and research notes remain previews. This is not yet production-ready.
+passage search. Phase 4 adds evidence-backed RAG chat with a configurable LLM.
+Research notes remain a preview. This is not yet production-ready.
 
 ## Structure
 
@@ -106,6 +107,7 @@ PostgreSQL port is bound to `127.0.0.1`; use appropriate credentials for deploym
 | GET | `/workspaces/{id}/documents/{document_id}` | Get document status |
 | DELETE | `/workspaces/{id}/documents/{document_id}` | Remove document, chunks, and source PDF |
 | POST | `/workspaces/{id}/search` | Return top-k passages using exact cosine search |
+| POST | `/workspaces/{id}/chat` | Generate an answer with validated source quotations |
 
 Workspace endpoints require `Authorization: Bearer <token>`. API docs are at
 `/docs` and `/redoc`. Workspace updates are not implemented.
@@ -181,7 +183,7 @@ curl -X POST "$API_URL/workspaces/$WORKSPACE_ID/search" \
 
 Search returns filename, page, chunk text, cosine similarity, and metadata. It only
 searches ready documents in the authenticated user's workspace. Top-k is capped at
-20. There is no generated answer yet and no approximate vector index: exact search
+20. Generated answers use the separate chat endpoint. There is no approximate vector index: exact search
 provides a baseline before measuring whether HNSW is needed.
 
 Defaults: 10 MiB uploads, 100 pages, 1 million cleaned characters, 5000 chunks.
@@ -189,6 +191,103 @@ Encrypted PDFs and files without extractable text fail clearly. OCR, complex lay
 reconstruction, background jobs, and object-storage uploads are not implemented.
 Synchronous parsing/model work can exceed hosting request timeouts for large files;
 begin with small text-based PDFs and one server worker on a memory-appropriate host.
+
+## Phase 4: your first RAG system
+
+The chat path is question -> local embedding -> exact pgvector search -> top-k
+passages -> structured LLM context -> answer with numbered evidence. Search and
+chat share `backend/app/services/retrieval.py`; the default remains five chunks.
+The Chat tab now calls the API and shows sources, quotations, loading/errors, and
+an expandable view of the retrieved context. Each question is independent; no
+conversation history is sent to the model or persisted.
+
+Configure the root `.env` with a provider that supports OpenAI-compatible
+`/chat/completions` and `response_format: {"type": "json_object"}`. For local Ollama:
+
+```dotenv
+LLM_BASE_URL=http://localhost:11434/v1
+LLM_MODEL=llama3.1:8b
+LLM_API_KEY=
+LLM_TIMEOUT_SECONDS=60
+RAG_TOP_K=5
+```
+
+Use an installed model supported by your hardware. The model name above is an
+example, not an automatic download. See [Ollama's compatibility documentation](https://github.com/ollama/ollama/blob/main/docs/api/openai-compatibility.mdx).
+For another compatible provider, configure its base URL, model, and server-side
+key. Questions and retrieved text are sent to that configured endpoint. The
+backend defaults to local Ollama with no selected model and reports an explicit
+configuration error until `LLM_MODEL` is set. Never put the key in a `NEXT_PUBLIC_`
+variable. In Docker, `localhost` refers to the backend container; configure a
+reachable model server address instead. Install dependencies with `uv sync --locked`.
+No database migration is added by Phase 4.
+
+```sh
+curl -X POST "$API_URL/workspaces/$WORKSPACE_ID/chat" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"message":"What are the main limitations of the proposed approach?"}'
+```
+
+A successful answer includes:
+
+```json
+{
+  "answer": "The evaluation used a small sample. [1]",
+  "sources": [
+    {"id": 1, "document": "paper.pdf", "page": 7,
+     "document_id": "...", "chunk_id": "...",
+     "quote": "The evaluation used only twelve documents."}
+  ],
+  "retrieved_chunks": [],
+  "status": "answered"
+}
+```
+
+The example abbreviates `retrieved_chunks`; real answers include the actual
+passages supplied to the LLM, with their IDs, ranks (array order), scores, and text.
+The model returns individual claims with source IDs and exact quotations. The
+server validates these against retrieved chunks and constructs citation numbers
+and document/page metadata itself. Unsupported IDs, missing citations, fabricated
+quotes, invalid JSON, and truncated completions fail with a safe generation error;
+no unvalidated answer is returned. Repeated use of the same passage/quote shares a
+citation number. Multiple quotes from one page may have different numbers.
+
+When there are no retrieved chunks, the LLM is skipped. When the LLM judges the
+context insufficient, it returns no claims. Both cases produce a fixed abstention,
+`status: "insufficient_evidence"`, and an empty source list. An abstention makes no
+factual document claim and therefore has no fabricated citation. There is no
+uncalibrated similarity cutoff. Exact quotes establish provenance, **not semantic
+entailment**: a model can still misinterpret a real quote. Evaluate claim support
+and abstentions manually before trusting answers. Document instructions are treated
+as untrusted data in the prompt; prompt separation is not a complete injection defense.
+
+### Debug retrieval separately from generation
+
+1. Inspect `retrieved_chunks` (or the Chat tab's passage inspector). If the needed
+   evidence is absent, investigate ingestion, chunk boundaries, query wording, and
+   retrieval ranking. Compare `/search` with the same question and `RAG_TOP_K`.
+2. If the necessary evidence is present but the answer is wrong or abstains,
+   investigate generation: the prompt, selected model, interpretation, and citations.
+3. Retrieval errors are labeled `Retrieval failed`; provider and citation-validation
+   errors are labeled `Generation ...` (HTTP 502). Authentication and database
+   prerequisite errors keep their normal status codes. INFO logs record stage
+   timing/counts without logging questions, document text, credentials, or provider
+   response bodies. For generation errors, use `/search` to inspect the context.
+
+Run isolated tests with `uv run --locked pytest`. To verify the entire live path,
+configure an **empty disposable** `PHASE3_TEST_DATABASE_URL`, plus the LLM settings,
+and run from `backend/`:
+
+```sh
+uv run --locked python scripts/verify_pgvector.py --chat
+```
+
+This uploads a synthetic PDF, uses real local embeddings and PostgreSQL retrieval,
+calls the configured LLM, validates quote/source mappings, and checks tenant
+isolation and an empty workspace. It leaves migrated tables in the disposable
+database; use a new empty database for each run. The existing command without
+`--chat` remains a retrieval-only check. LLM output is nondeterministic; passing a
+smoke test is not a retrieval or citation-accuracy benchmark.
 
 ## Render deployment for Phase 3
 
@@ -218,6 +317,11 @@ Compose now uses `pgvector/pgvector:pg16` and separate persistent database and i
 volumes. Do not delete an existing database volume when switching images.
 
 ## Experiments and integration verification
+
+The [Phase 5 readiness review](backend/experiments/PHASE5_BASELINE.md) records the
+vector-only baseline and gaps found before Phase 4 implementation. Phase 4 now adds
+generation and citations; a full PostgreSQL + LLM smoke test remains required before
+declaring the end-to-end gate verified. Hybrid retrieval work has not started.
 
 ```sh
 cd backend

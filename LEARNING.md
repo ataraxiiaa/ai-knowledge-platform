@@ -248,7 +248,7 @@ neighbors. A calibrated threshold or a later answerability check requires evalua
 
 The API filters by owned workspace and `ready` status before limiting results.
 Inspect filename, page, source content, and score in the workspace search panel.
-Chat generation is a later phase: retrieved passages alone are not an answer.
+Phase 4 adds chat generation on top of this retrieval step; passages alone are not an answer.
 
 ### Vector indexing: start exact, measure first
 
@@ -297,3 +297,37 @@ Primary references: FastEmbed supported models
 (https://qdrant.github.io/fastembed/examples/Supported_Models/), pgvector SQLAlchemy
 integration (https://github.com/pgvector/pgvector-python), and pypdf extraction
 (https://pypdf.readthedocs.io/en/stable/user/extract-text.html).
+
+
+## Phase 4: retrieval versus generation
+
+Retrieval selects evidence; generation turns that evidence into an answer. Our
+`POST /workspaces/{id}/chat` first embeds the question and searches the authenticated
+workspace's ready documents. It then sends up to `RAG_TOP_K` passages (default 5)
+to the configured LLM. The source list is resolved by the server, never accepted
+as a model-authored filename or page number.
+
+The generation contract is a list of claims, each with an exact supporting quote
+and retrieved source ID. Validation rejects unknown sources, missing evidence,
+quotes absent from the context, invalid JSON, and truncated model responses.
+Every accepted claim receives a numbered citation. The UI displays the cited
+filename, page, and quote alongside the answer. Exact substring validation proves
+the quote exists, but cannot prove that it logically supports the model's claim.
+That distinction is the reason citation accuracy still needs an evaluation dataset.
+
+If the question asks about limitations but the retrieved chunks describe only the
+introduction, investigate retrieval first. If the chunks explicitly describe a
+small sample but the answer claims a large sample, generation failed despite good
+retrieval. Inspect `retrieved_chunks` in the response or expand the Chat tab's
+retrieved passages. For a provider failure, the same `/search` question and top-k
+let you examine retrieval independently. Stage-specific errors and timing logs
+help distinguish infrastructure failures too.
+
+No passages means no LLM call. Insufficient evidence produces a fixed abstention
+and no citations. Nearest-neighbor results are not necessarily relevant, so there
+is no arbitrary similarity threshold. Each question is independent: chat history
+is neither persisted nor passed to the model in this first RAG implementation.
+
+The next phase compares dense, lexical, hybrid, and reranked retrieval on the same
+annotated questions. It should begin only after the real PostgreSQL-plus-LLM path
+is verified and the Phase 4 review is approved.

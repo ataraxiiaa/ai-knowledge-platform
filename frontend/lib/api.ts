@@ -1,4 +1,4 @@
-import { Document, SearchResult, TokenResponse, User, Workspace } from "@/types";
+import { ChatResponse, Document, SearchResult, TokenResponse, User, Workspace } from "@/types";
 
 export const AUTH_EXPIRED_EVENT = "auth:expired";
 
@@ -117,6 +117,10 @@ export const authApi = {
 };
 
 export const workspacesApi = {
+  chat: (id: string, message: string, signal?: AbortSignal): Promise<ChatResponse> =>
+    apiFetch(`/workspaces/${id}/chat`, {
+      method: "POST", body: JSON.stringify({ message }), signal,
+    }),
   list: (): Promise<Workspace[]> => apiFetch<Workspace[]>("/workspaces"),
 
   get: (id: string): Promise<Workspace> => apiFetch<Workspace>(`/workspaces/${id}`),

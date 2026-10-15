@@ -41,3 +41,19 @@ export interface TokenResponse {
 export interface ApiError {
   detail: string;
 }
+
+export interface ChatSource {
+  id: number;
+  document: string;
+  document_id: string;
+  page: number;
+  chunk_id: string;
+  quote: string;
+}
+
+export interface ChatResponse {
+  answer: string;
+  sources: ChatSource[];
+  retrieved_chunks: SearchResult[];
+  status: "answered" | "insufficient_evidence";
+}
