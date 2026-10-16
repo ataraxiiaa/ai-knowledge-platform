@@ -1,0 +1,14 @@
+{
+  "reviewer": "Codex agent manual review; not independent human annotation",
+  "units": 50,
+  "counts": {
+    "supported": 45,
+    "unsupported": 5,
+    "uncertain": 0,
+    "pending": 0
+  },
+  "definitive_review_coverage": 1.0,
+  "citation_accuracy": 0.9,
+  "partial_supported_fraction": 0.9,
+  "note": "Claim-citation support precision; incomplete/uncertain reviews have no final accuracy. Abstentions and generation errors are reported separately, not treated as correct citations."
+}

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "corpus_file": "corpus.json",
+  "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
+  "splits": {
+    "dev": {
+      "file": "dev.json",
+      "count": 33
+    },
+    "held_out": {
+      "file": "held-out.json",
+      "count": 12
+    }
+  },
+  "answerable_count": 40,
+  "unanswerable_count": 5,
+  "annotation_status": "Agent-authored and source-checked; pending user review",
+  "source": "../corpus.json",
+  "limitations": [
+    "Synthetic English text; one logical document, five pages.",
+    "Question-level split, not document-disjoint; held-out questions share the corpus.",
+    "Development includes concepts already used in the eight-question smoke baseline.",
+    "Held-out questions have not been scored or used to tune retrieval.",
+    "No independent human annotation or real PDF layout evaluation."
+  ]
+}

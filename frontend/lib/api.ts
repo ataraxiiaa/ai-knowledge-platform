@@ -148,8 +148,8 @@ export const documentsApi = {
   },
   delete: (workspaceId: string, documentId: string): Promise<void> =>
     apiFetch(`/workspaces/${workspaceId}/documents/${documentId}`, { method: "DELETE" }),
-  search: (workspaceId: string, query: string, topK: number): Promise<SearchResult[]> =>
+  search: (workspaceId: string, query: string, topK: number, method: "vector" | "bm25" | "hybrid" | "hybrid_reranked" = "vector"): Promise<SearchResult[]> =>
     apiFetch(`/workspaces/${workspaceId}/search`, {
-      method: "POST", body: JSON.stringify({ query, top_k: topK }),
+      method: "POST", body: JSON.stringify({ query, top_k: topK, method }),
     }),
 };

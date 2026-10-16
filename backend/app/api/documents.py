@@ -13,7 +13,7 @@ from app.models.documents import Document
 from app.models.users import User
 from app.models.workspaces import Workspace
 from app.schemas.documents import DocumentResponse, SearchRequest, SearchResult
-from app.services.retrieval import retrieve_passages
+from app.services.retrieval import retrieve_bm25, retrieve_hybrid, retrieve_passages, retrieve_reranked
 from app.services.ingestion import ingest_document
 from app.services.storage import delete_document_file, store_pdf
 
@@ -108,4 +108,10 @@ def search_documents(
     db: Session = Depends(get_db),
     _vector_db: None = Depends(require_vector_database),
 ):
+    if request.method == "bm25":
+        return retrieve_bm25(request.query, request.top_k, workspace.id, db)
+    if request.method == "hybrid_reranked":
+        return retrieve_reranked(request.query, request.top_k, workspace.id, db)
+    if request.method == "hybrid":
+        return retrieve_hybrid(request.query, request.top_k, workspace.id, db)
     return retrieve_passages(request.query, request.top_k, workspace.id, db)

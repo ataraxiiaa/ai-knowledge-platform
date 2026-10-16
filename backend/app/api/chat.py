@@ -10,7 +10,7 @@ from app.db.session import get_db
 from app.models.workspaces import Workspace
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.generation import GenerationError, generate_answer
-from app.services.retrieval import retrieve_passages
+from app.services.retrieval import retrieve_bm25, retrieve_hybrid, retrieve_passages, retrieve_reranked
 
 router = APIRouter(prefix="/workspaces", tags=["Chat"])
 logger = logging.getLogger(__name__)
@@ -25,7 +25,9 @@ def chat(
 ) -> ChatResponse:
     started = perf_counter()
     try:
-        passages = retrieve_passages(request.message, settings.RAG_TOP_K, workspace.id, db)
+        retriever = {"vector": retrieve_passages, "bm25": retrieve_bm25,
+                     "hybrid": retrieve_hybrid, "hybrid_reranked": retrieve_reranked}[settings.RAG_RETRIEVAL_METHOD]
+        passages = retriever(request.message, settings.RAG_TOP_K, workspace.id, db)
     except HTTPException as exc:
         raise HTTPException(exc.status_code, f"Retrieval failed: {exc.detail}") from exc
     except Exception as exc:

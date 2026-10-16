@@ -61,6 +61,7 @@ export function ChatPanel({ workspaceId }: { workspaceId: string }) {
           <article key={message.id} className={`rounded-xl p-4 text-sm ${message.role === "user" ? "ml-8 bg-indigo-50" : "mr-8 bg-gray-50"}`}>
             <p className="mb-2 font-semibold">{message.role === "user" ? "You" : "Answer"}</p>
             <p className="whitespace-pre-wrap break-words">{message.text}</p>
+            {message.result?.retrieved_chunks.some((chunk) => chunk.rerank_status === "fallback") && <p className="mt-2 text-amber-700">Reranking unavailable; evidence uses hybrid order.</p>}
             {!!message.result?.sources.length && (
               <div className="mt-4 border-t border-gray-200 pt-3">
                 <p className="font-semibold">Sources</p>

@@ -1,0 +1,160 @@
+[
+  {
+    "id": "rag-007",
+    "split": "held_out",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "Which fields belong in an adoption record?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 1,
+    "expected_answer": "The animal's name, approximate age, and current caregiver's contact information.",
+    "required_evidence": [
+      "An adoption record contains the animal's name, approximate age, and the contact information of its current caregiver."
+    ]
+  },
+  {
+    "id": "rag-008",
+    "split": "held_out",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "What does a training journal record?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 1,
+    "expected_answer": "The cue, environment, response, and reward.",
+    "required_evidence": [
+      "A training journal records the cue, environment, response, and reward so the caregiver can notice gradual progress rather than expecting instant obedience."
+    ]
+  },
+  {
+    "id": "rag-015",
+    "split": "held_out",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "Which observation details should be recorded for comparison across nights?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 2,
+    "expected_answer": "The date, approximate sky conditions, and equipment used.",
+    "required_evidence": [
+      "The observer checks a star chart before going outside and records the date, approximate sky conditions, and equipment used.",
+      "These notes make observations easier to compare across nights."
+    ]
+  },
+  {
+    "id": "rag-016",
+    "split": "held_out",
+    "category": "context",
+    "answerable": true,
+    "question": "How do a stable mount and tracking help keep a celestial target visible?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 2,
+    "expected_answer": "A stable mount keeps the target in view; tracking counters apparent sky motion that would carry it out of the field.",
+    "required_evidence": [
+      "A stable mount helps keep the target in view.",
+      "Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field."
+    ]
+  },
+  {
+    "id": "rag-023",
+    "split": "held_out",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "Which conditions should a technician record when comparing cells?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 3,
+    "expected_answer": "Load, ambient temperature, and test duration.",
+    "required_evidence": [
+      "A technician records the load, ambient temperature, and test duration when comparing cells."
+    ]
+  },
+  {
+    "id": "rag-024",
+    "split": "held_out",
+    "category": "context",
+    "answerable": true,
+    "question": "Is one successful charge enough to demonstrate battery durability, and how should durability be investigated?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 3,
+    "expected_answer": "No. Measure changes over repeated cycles while keeping test conditions as constant as possible.",
+    "required_evidence": [
+      "A single successful charge does not establish long-term durability.",
+      "A useful experiment measures changes over repeated cycles while holding the test conditions as constant as possible."
+    ]
+  },
+  {
+    "id": "rag-031",
+    "split": "held_out",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "How does mulch affect evaporation, and how should it be placed?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 4,
+    "expected_answer": "It can reduce surface evaporation; its thickness and placement should match the planting situation.",
+    "required_evidence": [
+      "A layer of mulch can reduce evaporation from the soil surface.",
+      "It also changes the soil environment, so its thickness and placement should match the planting situation."
+    ]
+  },
+  {
+    "id": "rag-032",
+    "split": "held_out",
+    "category": "context",
+    "answerable": true,
+    "question": "What does a garden trial compare and record?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 4,
+    "expected_answer": "Similar plants in nearby plots; both the treatment and the weather.",
+    "required_evidence": [
+      "A garden trial compares similar plants in nearby plots and records both the treatment and the weather."
+    ]
+  },
+  {
+    "id": "rag-039",
+    "split": "held_out",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "What does a primary key identify?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 5,
+    "expected_answer": "A row.",
+    "required_evidence": [
+      "A primary key identifies a row."
+    ]
+  },
+  {
+    "id": "rag-040",
+    "split": "held_out",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "How can a foreign key help prevent invalid references?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 5,
+    "expected_answer": "It references another table and can prevent records from pointing to missing parents.",
+    "required_evidence": [
+      "A foreign key describes a reference from one table to another and can help prevent records from pointing to missing parents."
+    ]
+  },
+  {
+    "id": "rag-044",
+    "split": "held_out",
+    "category": "unanswerable",
+    "answerable": false,
+    "question": "How many liters of water per day does the vegetable bed need?",
+    "expected_document": null,
+    "expected_page": null,
+    "expected_answer": "Insufficient evidence in the corpus to answer.",
+    "required_evidence": [],
+    "unanswerable_reason": "The corpus provides no daily watering quantity."
+  },
+  {
+    "id": "rag-045",
+    "split": "held_out",
+    "category": "unanswerable",
+    "answerable": false,
+    "question": "What HNSW ef_search value was used in the experiment?",
+    "expected_document": null,
+    "expected_page": null,
+    "expected_answer": "Insufficient evidence in the corpus to answer.",
+    "required_evidence": [],
+    "unanswerable_reason": "The corpus mentions HNSW settings but specifies no parameter values."
+  }
+]

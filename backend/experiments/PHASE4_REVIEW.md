@@ -1,5 +1,8 @@
 # Phase 4 implementation review
 
+Follow-up: the previously pending PostgreSQL + LLM integration test has now passed.
+See [PHASE5_STEP1_REVIEW.md](PHASE5_STEP1_REVIEW.md) for current readiness evidence.
+
 Date: 2026-10-16. Phase 5 remains paused for review.
 
 ## Implemented

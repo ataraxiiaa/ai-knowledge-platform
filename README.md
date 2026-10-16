@@ -1,4 +1,4 @@
-﻿# AI Knowledge Platform
+ï»¿# AI Knowledge Platform
 
 A FastAPI and Next.js foundation for a workspace-based knowledge platform.
 Authentication and workspace creation/listing/retrieval/deletion are implemented.
@@ -106,7 +106,7 @@ PostgreSQL port is bound to `127.0.0.1`; use appropriate credentials for deploym
 | GET | `/workspaces/{id}/documents` | List documents, statuses, errors, and chunk counts |
 | GET | `/workspaces/{id}/documents/{document_id}` | Get document status |
 | DELETE | `/workspaces/{id}/documents/{document_id}` | Remove document, chunks, and source PDF |
-| POST | `/workspaces/{id}/search` | Return top-k passages using exact cosine search |
+| POST | `/workspaces/{id}/search` | Return top-k passages using vector (default), BM25, or hybrid retrieval |
 | POST | `/workspaces/{id}/chat` | Generate an answer with validated source quotations |
 
 Workspace endpoints require `Authorization: Bearer <token>`. API docs are at
@@ -318,10 +318,76 @@ volumes. Do not delete an existing database volume when switching images.
 
 ## Experiments and integration verification
 
-The [Phase 5 readiness review](backend/experiments/PHASE5_BASELINE.md) records the
-vector-only baseline and gaps found before Phase 4 implementation. Phase 4 now adds
-generation and citations; a full PostgreSQL + LLM smoke test remains required before
-declaring the end-to-end gate verified. Hybrid retrieval work has not started.
+The [Phase 5 evaluation dataset](backend/experiments/evaluation/README.md) contains
+45 source-grounded examples: 40 answerable and five abstention checks, split into
+33 development and 12 held-out questions. It uses the existing five-page authored
+corpus. Validate annotations with
+`uv run --locked python scripts/validate_evaluation_dataset.py` from `backend/`.
+The [step 3 evaluation runner](backend/experiments/evaluation/RUNNER.md) records
+vector-only Recall@5, MRR, latency, generation failures, abstentions, and a manual
+citation-review worksheet. It defaults to development; held-out scoring requires
+an explicit opt-in. [Step 4 adds BM25](backend/experiments/evaluation/BM25_RESULTS.md)
+to the search API (`"method":"bm25"`) and Documents panel. Vector remains the default
+and chat retrieval method. BM25 returns `bm25_score` with `similarity: null`, uses
+ready chunks in the owned workspace, and returns no hits for no token overlap.
+No migration is needed. `BM25_MAX_CHUNKS=20000` bounds the per-request in-memory
+index; larger workspaces receive 503 instead of truncated rankings.
+
+On the same development questions, BM25 matched vector evidence Recall@5 (0.9833)
+and improved MRR from 0.9000 to 0.9833. This small synthetic comparison is not a
+general quality claim. [Step 5 adds hybrid retrieval](backend/experiments/evaluation/HYBRID_RESULTS.md):
+`"method":"hybrid"` merges up to `HYBRID_CANDIDATES=20` candidates per branch with
+reciprocal rank fusion (`HYBRID_RRF_K=60`), deduplicates by chunk ID, and returns
+top-k. The Documents selector supports hybrid. Chat can opt in with
+`RAG_RETRIEVAL_METHOD=hybrid`; its default remains vector. Hybrid achieved the same
+Recall@5 and MRR **0.9500**, between vector and BM25 on this development set.
+[Step 6 adds a local cross-encoder](backend/experiments/evaluation/RERANK_RESULTS.md).
+Use `"method":"hybrid_reranked"` for search or
+`RAG_RETRIEVAL_METHOD=hybrid_reranked` for chat: fuse candidates, rerank up to
+`RERANK_CANDIDATES=20`, then pass the best five to the LLM. Warm the model with
+`uv run --locked python -m app.services.reranking` from `backend/`.
+Failures explicitly return hybrid order with `rerank_status: "fallback"`.
+Development MRR rose from 0.9500 to **0.9833**, with Recall@5 unchanged at
+**0.9833** and median local retrieval latency **671 ms**. BM25 matched this MRR
+on the small corpus; the vector default remains unchanged pending final review.
+
+The [development baseline](backend/experiments/evaluation/RESULTS.md) measured
+evidence Recall@5 **0.9833** and MRR **0.9000** on 30 answerable questions. Across
+all 33 development questions, generation returned 26 answers, six validation
+errors, and one abstention. Agent-reviewed citation support was **45/50 (90%)**;
+independent human review is pending. These results expose generation failures
+despite strong retrieval. The 12 held-out questions have now been scored in the final comparison below.
+
+### Final held-out comparison
+
+[Step 7 results and failure analysis](backend/experiments/evaluation/FINAL_RESULTS.md)
+compare all four methods with fixed settings on 12 held-out questions (10
+answerable, two unanswerable):
+
+| Strategy | Recall@5 | MRR | Median retrieval | Citation support, agent review |
+|---|---:|---:|---:|---:|
+| Vector | 0.95 | 1.00 | 15.71 ms | 20/20 (100%) |
+| BM25 | 0.95 | 0.90 | 0.15 ms | 10/12 (83.3%) |
+| Hybrid | 0.95 | 1.00 | 19.72 ms | 20/21 (95.2%) |
+| Hybrid + reranker | 0.95 | 1.00 | 753.06 ms | 8/10 (80%) |
+
+**Decision: retain vector as the default.** Hybrid and reranking did not improve
+held-out retrieval here. These are single local offline runs on ten synthetic
+chunks, not production benchmarks. Generation failed on 4, 4, 6 and 5 of the
+12 requests respectively. Citation support excludes those failures and does not
+measure completeness or relevance; independent human review is pending.
+The shared 0.95 recall ceiling comes from a required evidence sentence crossing
+a chunk boundary. The held-out split is now consumed; use fresh data for future
+tuning. Phase 5 is complete, with generation reliability and broader evaluation
+identified as the next priorities.
+
+The [Phase 5 step 1 review](backend/experiments/PHASE5_STEP1_REVIEW.md) records a
+passing real PDF -> PostgreSQL -> local LLM -> validated citation smoke test and
+a fresh vector-only baseline. The default chunk size achieved evidence Hit@5 of
+1.000 and MRR of 0.875 on eight synthetic questions. These are smoke measurements,
+not a general quality benchmark. Steps 1 and 2 are complete; step 3 adds the
+evaluation runner before retrieval improvements. The [earlier readiness review](backend/experiments/PHASE5_BASELINE.md)
+preserves the gaps found before Phase 4 implementation.
 
 ```sh
 cd backend

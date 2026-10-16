@@ -1,0 +1,327 @@
+{
+  "run_id": "47a4accc-4690-47c3-bb15-3b4fee509c76",
+  "report_sha256": "c2b5c68b6dea782b5f5f1e1a48aef9cfb04b27da0a0434313aa272c544d46939",
+  "reviewer": "Codex agent review; not independent human review",
+  "items": [
+    {
+      "question_id": "rag-008",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A training journal records the cue, environment, response, and reward. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 1,
+        "chunk_id": "1e021518-d7dd-53e0-8462-900c7853f990",
+        "quote": "A training journal records the cue, environment, response, and reward so the caregiver can notice gradual progress rather than expecting instant obedience."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "The observer checks a star chart before going outside. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "The observer checks a star chart before going outside and records the date, approximate sky conditions, and equipment used."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 2,
+      "source_id": 1,
+      "claim": "The observer should record the date, approximate sky conditions, and equipment used. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "The observer checks a star chart before going outside and records the date, approximate sky conditions, and equipment used."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 3,
+      "source_id": 2,
+      "claim": "These notes make observations easier to compare across nights. [2]",
+      "source": {
+        "id": 2,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "These notes make observations easier to compare across nights."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 4,
+      "source_id": 3,
+      "claim": "Light pollution reduces the contrast of faint astronomical targets against the sky. [3]",
+      "source": {
+        "id": 3,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "e5fa263d-7d32-5994-929a-67c7f94003af",
+        "quote": "Light pollution reduces the contrast of faint astronomical targets against the sky."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness. This extra claim is tangential to the requested observation details."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 5,
+      "source_id": 4,
+      "claim": "Moving to a darker site can improve an observation without changing the instrument. [4]",
+      "source": {
+        "id": 4,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "e5fa263d-7d32-5994-929a-67c7f94003af",
+        "quote": "Moving to a darker site can therefore improve an observation without changing the instrument."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness. This extra claim is tangential to the requested observation details."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 6,
+      "source_id": 5,
+      "claim": "Good notes make it possible to separate a plausible explanation from a coincidence. [5]",
+      "source": {
+        "id": 5,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "bdd7fa04-7376-5610-bbb5-f007823a23ce",
+        "quote": "Good notes make it possible to separate a plausible explanation from a coincidence."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness. This extra claim is tangential to the requested observation details."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 7,
+      "source_id": 6,
+      "claim": "A garden trial compares similar plants in nearby plots and records both the treatment and the weather. [6]",
+      "source": {
+        "id": 6,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "bdd7fa04-7376-5610-bbb5-f007823a23ce",
+        "quote": "A garden trial compares similar plants in nearby plots and records both the treatment and the weather."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness. This extra claim is tangential to the requested observation details."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 8,
+      "source_id": 7,
+      "claim": "Observations taken on one unusually hot afternoon are insufficient to establish a general rule. [7]",
+      "source": {
+        "id": 7,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "bdd7fa04-7376-5610-bbb5-f007823a23ce",
+        "quote": "Observations taken on one unusually hot afternoon are insufficient to establish a general rule."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness. This extra claim is tangential to the requested observation details."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 9,
+      "source_id": 8,
+      "claim": "A training journal records the cue, environment, response, and reward so the caregiver can notice gradual progress. [8]",
+      "source": {
+        "id": 8,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 1,
+        "chunk_id": "1e021518-d7dd-53e0-8462-900c7853f990",
+        "quote": "A training journal records the cue, environment, response, and reward so the caregiver can notice gradual progress rather than expecting instant obedience."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness. This extra claim is tangential to the requested observation details."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 10,
+      "source_id": 9,
+      "claim": "A relational database stores records in tables and connects related records through keys. [9]",
+      "source": {
+        "id": 9,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 5,
+        "chunk_id": "63ef0b44-3aad-5ef3-98a7-d29142adbc95",
+        "quote": "A relational database stores records in tables and connects related records through keys."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness. This extra claim is tangential to the requested observation details."
+    },
+    {
+      "question_id": "rag-016",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A stable mount helps keep the target in view. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "A stable mount helps keep the target in view."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-016",
+      "claim_index": 2,
+      "source_id": 2,
+      "claim": "Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field. [2]",
+      "source": {
+        "id": 2,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-023",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A technician records the load, ambient temperature, and test duration when comparing cells. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 3,
+        "chunk_id": "986da815-03d1-58b3-8f28-3b29b7c7ca72",
+        "quote": "A technician records the load, ambient temperature, and test duration when comparing cells."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-024",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A single successful charge is not enough to demonstrate battery durability. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 3,
+        "chunk_id": "41076f16-8fa0-52e0-9149-5d36e4fd70d6",
+        "quote": "A single successful charge does not establish long-term durability."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-024",
+      "claim_index": 2,
+      "source_id": 2,
+      "claim": "To investigate durability, a useful experiment measures changes over repeated cycles while holding test conditions as constant as possible. [2]",
+      "source": {
+        "id": 2,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 3,
+        "chunk_id": "41076f16-8fa0-52e0-9149-5d36e4fd70d6",
+        "quote": "A useful experiment measures changes over repeated cycles while holding the test conditions as constant as possible."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-032",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A garden trial compares similar plants in nearby plots. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "bdd7fa04-7376-5610-bbb5-f007823a23ce",
+        "quote": "A garden trial compares similar plants in nearby plots and records both the treatment and the weather."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-032",
+      "claim_index": 2,
+      "source_id": 1,
+      "claim": "A garden trial records both the treatment and the weather. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "bdd7fa04-7376-5610-bbb5-f007823a23ce",
+        "quote": "A garden trial compares similar plants in nearby plots and records both the treatment and the weather."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    },
+    {
+      "question_id": "rag-032",
+      "claim_index": 3,
+      "source_id": 1,
+      "claim": "A garden trial records both the treatment and the weather. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "bdd7fa04-7376-5610-bbb5-f007823a23ce",
+        "quote": "A garden trial compares similar plants in nearby plots and records both the treatment and the weather."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness. Duplicates the preceding claim."
+    },
+    {
+      "question_id": "rag-039",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A primary key identifies a row. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 5,
+        "chunk_id": "63ef0b44-3aad-5ef3-98a7-d29142adbc95",
+        "quote": "A primary key identifies a row."
+      },
+      "judgment": "supported",
+      "notes": "The quoted evidence entails this claim. Citation support does not establish answer relevance or completeness."
+    }
+  ]
+}

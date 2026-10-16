@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--rerank", action="store_true", help="Verify the installed cross-encoder without fallback")
 parser.add_argument("--chat", action="store_true", help="Also call the configured LLM with synthetic PDF text and validate citations")
 args = parser.parse_args()
 sys.path.insert(0, str(ROOT))
@@ -64,6 +65,51 @@ with TemporaryDirectory(prefix="pgvector-upload-", dir=ROOT / ".cache") as stora
         assert hits[0]["page"] == 1 and -1 <= hits[0]["similarity"] <= 1
         assert client.post(f"/workspaces/{workspace}/search", headers=other_headers, json={"query": "dog"}).status_code == 404
         assert client.post(f"/workspaces/{other_workspace}/search", headers=other_headers, json={"query": "dog"}).json() == []
+        lexical = client.post(f"/workspaces/{workspace}/search", headers=headers,
+                              json={"query": "puppy", "top_k": 1, "method": "bm25"})
+        assert lexical.status_code == 200, lexical.text
+        lexical_hits = lexical.json()
+        assert len(lexical_hits) == 1 and "puppy" in lexical_hits[0]["content"].lower()
+        assert lexical_hits[0]["document_id"] == document["id"] and lexical_hits[0]["page"] == 1
+        assert lexical_hits[0]["bm25_score"] > 0 and lexical_hits[0]["similarity"] is None
+        assert lexical_hits[0]["retrieval_method"] == "bm25"
+        assert client.post(f"/workspaces/{workspace}/search", headers=headers,
+                           json={"query": "zzznomatch987", "method": "bm25"}).json() == []
+        assert client.post(f"/workspaces/{workspace}/search", headers=other_headers,
+                           json={"query": "puppy", "method": "bm25"}).status_code == 404
+        assert client.post(f"/workspaces/{other_workspace}/search", headers=other_headers,
+                           json={"query": "puppy", "method": "bm25"}).json() == []
+        print("PASS: BM25 PostgreSQL chunk loading, keyword ranking, source metadata, no-match and tenant isolation")
+        fused = client.post(f"/workspaces/{workspace}/search", headers=headers,
+                            json={"query": "puppy", "method": "hybrid", "top_k": 5})
+        assert fused.status_code == 200, fused.text
+        fused_hits = fused.json()
+        assert fused_hits and len({hit["chunk_id"] for hit in fused_hits}) == len(fused_hits)
+        for hit in fused_hits:
+            assert hit["document_id"] == document["id"] and hit["page"] == 1
+            assert hit["retrieval_method"] == "hybrid" and hit["fusion_score"] > 0
+            expected = sum(1 / (settings.HYBRID_RRF_K + hit[field])
+                           for field in ("vector_rank", "bm25_rank") if hit[field] is not None)
+            assert abs(hit["fusion_score"] - expected) < 1e-12
+        assert client.post(f"/workspaces/{workspace}/search", headers=other_headers,
+                           json={"query": "puppy", "method": "hybrid"}).status_code == 404
+        assert client.post(f"/workspaces/{other_workspace}/search", headers=other_headers,
+                           json={"query": "puppy", "method": "hybrid"}).json() == []
+        print("PASS: hybrid rank fusion, deduplication, source identity and tenant isolation")
+        if args.rerank:
+            reranked = client.post(f"/workspaces/{workspace}/search", headers=headers,
+                                   json={"query": "puppy", "method": "hybrid_reranked", "top_k": 5})
+            assert reranked.status_code == 200, reranked.text
+            reranked_hits = reranked.json()
+            assert reranked_hits and all(hit["rerank_status"] == "applied" for hit in reranked_hits)
+            assert all(hit["document_id"] == document["id"] and hit["page"] == 1 for hit in reranked_hits)
+            assert [hit["rerank_score"] for hit in reranked_hits] == sorted(
+                [hit["rerank_score"] for hit in reranked_hits], reverse=True)
+            assert client.post(f"/workspaces/{workspace}/search", headers=other_headers,
+                               json={"query": "puppy", "method": "hybrid_reranked"}).status_code == 404
+            assert client.post(f"/workspaces/{other_workspace}/search", headers=other_headers,
+                               json={"query": "puppy", "method": "hybrid_reranked"}).json() == []
+            print("PASS: real cross-encoder ranking, source preservation and tenant isolation; no fallback")
         if args.chat:
             answer = client.post(f"/workspaces/{workspace}/chat", headers=headers,
                                 json={"message": "What is a puppy?"})
@@ -71,6 +117,7 @@ with TemporaryDirectory(prefix="pgvector-upload-", dir=ROOT / ".cache") as stora
             data = answer.json()
             assert data["status"] == "answered" and data["sources"], data
             context = {hit["chunk_id"]: hit for hit in data["retrieved_chunks"]}
+            assert all(hit["retrieval_method"] == settings.RAG_RETRIEVAL_METHOD for hit in context.values())
             for source in data["sources"]:
                 assert source["document_id"] == document["id"] and source["page"] == 1
                 assert source["document"] == "dogs.pdf"

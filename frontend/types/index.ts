@@ -29,7 +29,14 @@ export interface SearchResult {
   content: string;
   page: number;
   chunk_index: number;
-  similarity: number;
+  similarity: number | null;
+  bm25_score?: number | null;
+  rerank_score?: number | null;
+  rerank_status?: "applied" | "fallback" | null;
+  fusion_score?: number | null;
+  vector_rank?: number | null;
+  bm25_rank?: number | null;
+  retrieval_method?: "vector" | "bm25" | "hybrid" | "hybrid_reranked";
   metadata: Record<string, unknown>;
 }
 

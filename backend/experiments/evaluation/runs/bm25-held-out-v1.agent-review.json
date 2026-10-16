@@ -1,0 +1,199 @@
+{
+  "run_id": "90601c12-509f-48f7-92d6-48a3708b9d4a",
+  "report_sha256": "6d6e3546999d5758052eceb64ca0b59a585e50949896aab9993535f3b9d1d800",
+  "reviewer": "Codex agent review; not independent human review",
+  "items": [
+    {
+      "question_id": "rag-008",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A training journal records the cue, environment, response, and reward. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 1,
+        "chunk_id": "1e021518-d7dd-53e0-8462-900c7853f990",
+        "quote": "A training journal records the cue, environment, response, and reward so the caregiver can notice gradual progress rather than expecting instant obedience."
+      },
+      "judgment": "supported",
+      "notes": "The quote entails the claim; this does not grade response completeness or relevance."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "These notes make observations easier to compare across nights. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "The observer checks a star chart before going outside and records the date, approximate sky conditions, and equipment used. These notes make observations easier to compare across nights."
+      },
+      "judgment": "supported",
+      "notes": "The source supports the comparison benefit, but the answer omits the requested observation fields."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 2,
+      "source_id": 2,
+      "claim": "A stable mount helps keep the target in view. [2]",
+      "source": {
+        "id": 2,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "A stable mount helps keep the target in view."
+      },
+      "judgment": "supported",
+      "notes": "Supported but tangential to the requested observation fields."
+    },
+    {
+      "question_id": "rag-015",
+      "claim_index": 3,
+      "source_id": 3,
+      "claim": "Light pollution reduces the contrast of faint astronomical targets against the sky. [3]",
+      "source": {
+        "id": 3,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "e5fa263d-7d32-5994-929a-67c7f94003af",
+        "quote": "Light pollution reduces the contrast of faint astronomical targets against the sky."
+      },
+      "judgment": "supported",
+      "notes": "Supported but tangential to the requested observation fields."
+    },
+    {
+      "question_id": "rag-016",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A stable mount helps keep the target in view. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "A stable mount helps keep the target in view."
+      },
+      "judgment": "supported",
+      "notes": "The quote entails the claim; this does not grade response completeness or relevance."
+    },
+    {
+      "question_id": "rag-016",
+      "claim_index": 2,
+      "source_id": 2,
+      "claim": "Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field. [2]",
+      "source": {
+        "id": 2,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field."
+      },
+      "judgment": "supported",
+      "notes": "The quote entails the claim; this does not grade response completeness or relevance."
+    },
+    {
+      "question_id": "rag-023",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A technician should record the load when comparing cells. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 3,
+        "chunk_id": "986da815-03d1-58b3-8f28-3b29b7c7ca72",
+        "quote": "A technician records the load, ambient temperature, and test duration when comparing cells."
+      },
+      "judgment": "supported",
+      "notes": "Supported, but the answer omits ambient temperature and test duration."
+    },
+    {
+      "question_id": "rag-024",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A single successful charge does not establish long-term durability. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 3,
+        "chunk_id": "41076f16-8fa0-52e0-9149-5d36e4fd70d6",
+        "quote": "A single successful charge does not establish long-term durability."
+      },
+      "judgment": "supported",
+      "notes": "Supported, but the answer omits how to investigate durability."
+    },
+    {
+      "question_id": "rag-039",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A primary key identifies a row. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 5,
+        "chunk_id": "63ef0b44-3aad-5ef3-98a7-d29142adbc95",
+        "quote": "A primary key identifies a row."
+      },
+      "judgment": "supported",
+      "notes": "The quote entails the claim; this does not grade response completeness or relevance."
+    },
+    {
+      "question_id": "rag-039",
+      "claim_index": 2,
+      "source_id": 2,
+      "claim": "A primary key does not grant access to a caller. [2]",
+      "source": {
+        "id": 2,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 5,
+        "chunk_id": "63ef0b44-3aad-5ef3-98a7-d29142adbc95",
+        "quote": "A relationship between tables does not automatically grant or deny access to a caller."
+      },
+      "judgment": "unsupported",
+      "notes": "The quote concerns a relationship between tables, not a primary key; it does not establish the specific claim."
+    },
+    {
+      "question_id": "rag-040",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A foreign key helps prevent invalid references by describing the relationship between tables. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 5,
+        "chunk_id": "63ef0b44-3aad-5ef3-98a7-d29142adbc95",
+        "quote": "A foreign key describes a reference from one table to another and can help prevent records from pointing to missing parents."
+      },
+      "judgment": "supported",
+      "notes": "The quote entails the claim; this does not grade response completeness or relevance."
+    },
+    {
+      "question_id": "rag-044",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "One supported factual statement [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "515982a3-9249-53da-86cc-f47b70b2a53d",
+        "quote": "A layer of mulch can reduce evaporation from the soil surface."
+      },
+      "judgment": "unsupported",
+      "notes": "The placeholder claim has no factual meaning supported by this quote and does not answer the unanswerable watering-quantity question."
+    }
+  ]
+}

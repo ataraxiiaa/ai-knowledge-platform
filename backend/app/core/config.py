@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Literal
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -28,6 +29,13 @@ class Settings(BaseSettings):
     LLM_API_KEY: str = Field(default="", repr=False)
     LLM_TIMEOUT_SECONDS: float = Field(default=60, gt=0, le=300)
     RAG_TOP_K: int = Field(default=5, ge=1, le=20)
+    BM25_MAX_CHUNKS: int = Field(default=20000, ge=1)
+    HYBRID_CANDIDATES: int = Field(default=20, ge=20, le=200)
+    RERANK_CACHE_DIR: Path = BACKEND_DIR / ".cache" / "rerankers"
+    RERANK_THREADS: int = Field(default=2, ge=1, le=16)
+    RERANK_CANDIDATES: int = Field(default=20, ge=20, le=200)
+    HYBRID_RRF_K: int = Field(default=60, ge=1, le=1000)
+    RAG_RETRIEVAL_METHOD: Literal["vector", "bm25", "hybrid", "hybrid_reranked"] = "vector"
 
     @field_validator("LLM_BASE_URL")
     @classmethod

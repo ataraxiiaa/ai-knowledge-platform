@@ -1,0 +1,438 @@
+[
+  {
+    "id": "rag-001",
+    "split": "dev",
+    "category": "paraphrase",
+    "answerable": true,
+    "question": "What is a puppy?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 1,
+    "expected_answer": "A puppy is a young dog.",
+    "required_evidence": [
+      "A puppy is a young dog."
+    ]
+  },
+  {
+    "id": "rag-002",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "What should a handler prepare before bringing an adopted animal home?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 1,
+    "expected_answer": "A quiet sleeping place, clean water, and a predictable routine.",
+    "required_evidence": [
+      "The handler prepares a quiet sleeping place, clean water, and a predictable routine before the animal arrives."
+    ]
+  },
+  {
+    "id": "rag-003",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "How should a nervous young animal explore unfamiliar rooms?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 1,
+    "expected_answer": "Let it explore without forcing contact.",
+    "required_evidence": [
+      "Young animals can be nervous in unfamiliar rooms and should be allowed to explore without being forced into contact."
+    ]
+  },
+  {
+    "id": "rag-004",
+    "split": "dev",
+    "category": "paraphrase",
+    "answerable": true,
+    "question": "How should a young canine be taught to follow commands?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 1,
+    "expected_answer": "Use short sessions and immediate positive rewards.",
+    "required_evidence": [
+      "Puppies learn commands through short sessions with immediate positive rewards."
+    ]
+  },
+  {
+    "id": "rag-005",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "Why should a reward follow the desired behavior immediately?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 1,
+    "expected_answer": "So the animal associates its action with the reward.",
+    "required_evidence": [
+      "The trainer should reward the behavior immediately so the animal can associate its action with the reward."
+    ]
+  },
+  {
+    "id": "rag-006",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "Why should family members use consistent cues?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 1,
+    "expected_answer": "Contradictory cues make learning harder.",
+    "required_evidence": [
+      "Consistency between family members matters because contradictory cues make learning harder."
+    ]
+  },
+  {
+    "id": "rag-009",
+    "split": "dev",
+    "category": "paraphrase",
+    "answerable": true,
+    "question": "What does increasing telescope aperture help an observer see?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 2,
+    "expected_answer": "Dimmer objects, because a larger aperture collects more light.",
+    "required_evidence": [
+      "A larger aperture collects more light and can reveal dimmer objects."
+    ]
+  },
+  {
+    "id": "rag-010",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "Why is magnification alone insufficient to judge telescope quality?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 2,
+    "expected_answer": "Atmospheric turbulence and the optics also affect the image.",
+    "required_evidence": [
+      "Magnification alone is not a measure of telescope quality because atmospheric turbulence and the instrument's optics also affect the image."
+    ]
+  },
+  {
+    "id": "rag-011",
+    "split": "dev",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "What do optical and radio telescopes detect respectively?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 2,
+    "expected_answer": "Optical telescopes collect visible light; radio telescopes detect radio waves.",
+    "required_evidence": [
+      "An optical telescope collects visible light; a radio telescope detects radio waves."
+    ]
+  },
+  {
+    "id": "rag-012",
+    "split": "dev",
+    "category": "paraphrase",
+    "answerable": true,
+    "question": "Why are faint astronomical targets harder to see in a brightly lit city?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 2,
+    "expected_answer": "Light pollution lowers their contrast against the sky.",
+    "required_evidence": [
+      "Light pollution reduces the contrast of faint astronomical targets against the sky."
+    ]
+  },
+  {
+    "id": "rag-013",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "How can an observer improve a faint-target observation without replacing the telescope?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 2,
+    "expected_answer": "Move to a darker site to reduce the effect of light pollution.",
+    "required_evidence": [
+      "Light pollution reduces the contrast of faint astronomical targets against the sky.",
+      "Moving to a darker site can therefore improve an observation without changing the instrument."
+    ]
+  },
+  {
+    "id": "rag-014",
+    "split": "dev",
+    "category": "paraphrase",
+    "answerable": true,
+    "question": "What advantage can a long-exposure photograph have over direct viewing?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 2,
+    "expected_answer": "It can accumulate light for longer than the eye can comfortably observe.",
+    "required_evidence": [
+      "A photograph of a faint object can accumulate light over a longer exposure than the eye can comfortably observe."
+    ]
+  },
+  {
+    "id": "rag-017",
+    "split": "dev",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "By what process does a rechargeable battery store energy?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 3,
+    "expected_answer": "Electrochemical reactions.",
+    "required_evidence": [
+      "A rechargeable battery stores energy through electrochemical reactions."
+    ]
+  },
+  {
+    "id": "rag-018",
+    "split": "dev",
+    "category": "paraphrase",
+    "answerable": true,
+    "question": "What does a charger do inside a rechargeable cell?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 3,
+    "expected_answer": "It supplies energy to reverse suitable reactions.",
+    "required_evidence": [
+      "A charger supplies energy to reverse suitable reactions in a rechargeable cell."
+    ]
+  },
+  {
+    "id": "rag-019",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "Who specifies charging conditions and protective circuitry for a particular battery?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 3,
+    "expected_answer": "The device manufacturer.",
+    "required_evidence": [
+      "The device manufacturer specifies the charging conditions and protective circuitry for a particular battery."
+    ]
+  },
+  {
+    "id": "rag-020",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "Does battery capacity alone determine charging speed?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 3,
+    "expected_answer": "No. Capacity describes charge delivered under specified conditions; temperature, internal resistance, and the charger also affect practical behavior.",
+    "required_evidence": [
+      "Battery capacity describes how much charge a cell can deliver under specified conditions.",
+      "It does not by itself determine how fast a device can charge.",
+      "Temperature, internal resistance, and the charger also affect practical behavior."
+    ]
+  },
+  {
+    "id": "rag-021",
+    "split": "dev",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "What can a battery management system monitor and limit?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 3,
+    "expected_answer": "It monitors operating conditions and can limit charging or discharging.",
+    "required_evidence": [
+      "A battery management system monitors operating conditions and can limit charging or discharging."
+    ]
+  },
+  {
+    "id": "rag-022",
+    "split": "dev",
+    "category": "paraphrase",
+    "answerable": true,
+    "question": "Why should a rechargeable cell be kept away from excessive heat?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 3,
+    "expected_answer": "High temperatures can accelerate degradation, so avoiding excessive heat helps preserve useful life.",
+    "required_evidence": [
+      "Repeated operation at high temperatures can accelerate battery degradation.",
+      "Keeping a battery away from excessive heat helps preserve its useful life."
+    ]
+  },
+  {
+    "id": "rag-025",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "How can sandy and compacted beds differ in water behavior?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 4,
+    "expected_answer": "A sandy bed can drain quickly; a compacted bed may hold water near the surface.",
+    "required_evidence": [
+      "A sandy bed can drain quickly, while a compacted bed may hold water near the surface."
+    ]
+  },
+  {
+    "id": "rag-026",
+    "split": "dev",
+    "category": "paraphrase",
+    "answerable": true,
+    "question": "Where should soil moisture be checked instead of relying on the appearance of the top layer?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 4,
+    "expected_answer": "Below the surface.",
+    "required_evidence": [
+      "The gardener checks moisture below the surface rather than judging only by the appearance of the top layer."
+    ]
+  },
+  {
+    "id": "rag-027",
+    "split": "dev",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "What does compost add, and what soil property can it improve?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 4,
+    "expected_answer": "Organic matter; it can improve soil structure.",
+    "required_evidence": [
+      "Compost adds organic matter and can improve soil structure."
+    ]
+  },
+  {
+    "id": "rag-028",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "Should compost replace every other soil material?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 4,
+    "expected_answer": "No. Mix it thoughtfully with existing soil rather than treating it as a universal replacement.",
+    "required_evidence": [
+      "Compost adds organic matter and can improve soil structure.",
+      "It is mixed thoughtfully with the existing soil rather than treated as a universal replacement for every other material."
+    ]
+  },
+  {
+    "id": "rag-029",
+    "split": "dev",
+    "category": "paraphrase",
+    "answerable": true,
+    "question": "Why can too much watering harm plant roots?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 4,
+    "expected_answer": "It can reduce the oxygen available to roots.",
+    "required_evidence": [
+      "Plants need water, but roots also require oxygen.",
+      "Overwatering can reduce the oxygen available to roots."
+    ]
+  },
+  {
+    "id": "rag-030",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "Does a wilted plant always need more water?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 4,
+    "expected_answer": "No. Check soil and recent conditions before changing the watering schedule.",
+    "required_evidence": [
+      "A wilted plant is therefore not always asking for more water.",
+      "The gardener checks the soil and considers recent conditions before changing the watering schedule."
+    ]
+  },
+  {
+    "id": "rag-033",
+    "split": "dev",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "Which parent records do documents and chunks reference in a workspace application?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 5,
+    "expected_answer": "Documents reference their workspace, and chunks reference their document.",
+    "required_evidence": [
+      "In a workspace application, documents reference their workspace, while chunks reference their document."
+    ]
+  },
+  {
+    "id": "rag-034",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "Do relationships between database tables automatically authorize a caller?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 5,
+    "expected_answer": "No. Authorization must check which user owns the workspace.",
+    "required_evidence": [
+      "Authorization still needs to check which user owns the workspace.",
+      "A relationship between tables does not automatically grant or deny access to a caller."
+    ]
+  },
+  {
+    "id": "rag-035",
+    "split": "dev",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "Which vectors does exact vector search compare against the query?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 5,
+    "expected_answer": "Every eligible stored vector.",
+    "required_evidence": [
+      "Exact vector search compares the query vector against every eligible stored vector."
+    ]
+  },
+  {
+    "id": "rag-036",
+    "split": "dev",
+    "category": "paraphrase",
+    "answerable": true,
+    "question": "What is the recall-versus-speed tradeoff of approximate vector indexing?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 5,
+    "expected_answer": "It trades some retrieval recall for lower query latency.",
+    "required_evidence": [
+      "Approximate vector indexes trade some retrieval recall for lower query latency."
+    ]
+  },
+  {
+    "id": "rag-037",
+    "split": "dev",
+    "category": "exact_terms",
+    "answerable": true,
+    "question": "How does HNSW avoid scanning every row, and what should precede adding it?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 5,
+    "expected_answer": "It organizes connections between vectors to visit promising candidates; first measure exact-search workload on a realistic corpus.",
+    "required_evidence": [
+      "HNSW organizes connections between vectors so a search can visit promising candidates instead of scanning every row.",
+      "Before adding such an index, measure the exact-search workload on a realistic corpus."
+    ]
+  },
+  {
+    "id": "rag-038",
+    "split": "dev",
+    "category": "context",
+    "answerable": true,
+    "question": "Does requesting five nearest passages guarantee a relevant answer?",
+    "expected_document": "authored-learning-notes",
+    "expected_page": 5,
+    "expected_answer": "No. Top-k is a count, not a similarity guarantee, and unrelated queries still have nearest neighbors when vectors exist.",
+    "required_evidence": [
+      "Top-k is the number of nearest results requested, not a minimum similarity guarantee.",
+      "Even an unrelated query has nearest neighbors if the table contains vectors."
+    ]
+  },
+  {
+    "id": "rag-041",
+    "split": "dev",
+    "category": "unanswerable",
+    "answerable": false,
+    "question": "What is the adopted animal's exact name?",
+    "expected_document": null,
+    "expected_page": null,
+    "expected_answer": "Insufficient evidence in the corpus to answer.",
+    "required_evidence": [],
+    "unanswerable_reason": "The corpus describes fields in an adoption record but names no individual animal."
+  },
+  {
+    "id": "rag-042",
+    "split": "dev",
+    "category": "unanswerable",
+    "answerable": false,
+    "question": "What is the telescope aperture in millimeters?",
+    "expected_document": null,
+    "expected_page": null,
+    "expected_answer": "Insufficient evidence in the corpus to answer.",
+    "required_evidence": [],
+    "unanswerable_reason": "The corpus discusses aperture qualitatively and gives no measurement."
+  },
+  {
+    "id": "rag-043",
+    "split": "dev",
+    "category": "unanswerable",
+    "answerable": false,
+    "question": "What is the battery capacity in milliamp-hours?",
+    "expected_document": null,
+    "expected_page": null,
+    "expected_answer": "Insufficient evidence in the corpus to answer.",
+    "required_evidence": [],
+    "unanswerable_reason": "The corpus defines capacity but gives no numeric capacity."
+  }
+]

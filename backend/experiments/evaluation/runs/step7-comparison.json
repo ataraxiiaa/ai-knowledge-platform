@@ -1,0 +1,182 @@
+{
+  "split": "held_out",
+  "questions_per_strategy": 12,
+  "answerable": 10,
+  "unanswerable": 2,
+  "review_type": "agent; independent human review pending",
+  "default_decision": "retain vector",
+  "strategies": [
+    {
+      "strategy": "vector",
+      "report": "vector-held-out-v1.json",
+      "report_sha256": "c2b5c68b6dea782b5f5f1e1a48aef9cfb04b27da0a0434313aa272c544d46939",
+      "retrieval_and_generation": {
+        "rerank_status_counts": {},
+        "reranking_ms_median": null,
+        "questions": 12,
+        "answerable_questions": 10,
+        "unanswerable_questions": 2,
+        "recall_at_5": 0.95,
+        "mrr": 1.0,
+        "complete_evidence_at_5": 0.9,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.95,
+        "retrieval_ms_median": 15.707350001321174,
+        "retrieval_ms_p95": 21.07649999379646,
+        "generation_attempts": 12,
+        "generation_status_counts": {
+          "error": 4,
+          "answered": 7,
+          "insufficient_evidence": 1
+        },
+        "unanswerable_abstention_rate": 0.5,
+        "answerable_abstention_rate": 0,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "requires manual claim-support review"
+      },
+      "citation_review": {
+        "reviewer": "Codex agent review; not independent human review",
+        "units": 20,
+        "counts": {
+          "supported": 20,
+          "unsupported": 0,
+          "uncertain": 0,
+          "pending": 0
+        },
+        "definitive_review_coverage": 1.0,
+        "citation_accuracy": 1.0,
+        "partial_supported_fraction": 1.0,
+        "note": "Claim-citation support precision; incomplete/uncertain reviews have no final accuracy. Abstentions and generation errors are reported separately, not treated as correct citations."
+      }
+    },
+    {
+      "strategy": "bm25",
+      "report": "bm25-held-out-v1.json",
+      "report_sha256": "6d6e3546999d5758052eceb64ca0b59a585e50949896aab9993535f3b9d1d800",
+      "retrieval_and_generation": {
+        "rerank_status_counts": {},
+        "reranking_ms_median": null,
+        "questions": 12,
+        "answerable_questions": 10,
+        "unanswerable_questions": 2,
+        "recall_at_5": 0.95,
+        "mrr": 0.9,
+        "complete_evidence_at_5": 0.9,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.95,
+        "retrieval_ms_median": 0.15419999544974416,
+        "retrieval_ms_p95": 0.18930000078398734,
+        "generation_attempts": 12,
+        "generation_status_counts": {
+          "error": 4,
+          "answered": 8
+        },
+        "unanswerable_abstention_rate": 0,
+        "answerable_abstention_rate": 0,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "requires manual claim-support review"
+      },
+      "citation_review": {
+        "reviewer": "Codex agent review; not independent human review",
+        "units": 12,
+        "counts": {
+          "supported": 10,
+          "unsupported": 2,
+          "uncertain": 0,
+          "pending": 0
+        },
+        "definitive_review_coverage": 1.0,
+        "citation_accuracy": 0.8333333333333334,
+        "partial_supported_fraction": 0.8333333333333334,
+        "note": "Claim-citation support precision; incomplete/uncertain reviews have no final accuracy. Abstentions and generation errors are reported separately, not treated as correct citations."
+      }
+    },
+    {
+      "strategy": "hybrid",
+      "report": "hybrid-held-out-v1.json",
+      "report_sha256": "7f99375bf5dcfc94991996eeaa5f0d4cc94616c0461996eb7b7de70149324824",
+      "retrieval_and_generation": {
+        "rerank_status_counts": {},
+        "reranking_ms_median": null,
+        "questions": 12,
+        "answerable_questions": 10,
+        "unanswerable_questions": 2,
+        "recall_at_5": 0.95,
+        "mrr": 1.0,
+        "complete_evidence_at_5": 0.9,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.95,
+        "retrieval_ms_median": 19.724799996765796,
+        "retrieval_ms_p95": 27.392999996664003,
+        "generation_attempts": 12,
+        "generation_status_counts": {
+          "error": 6,
+          "answered": 6
+        },
+        "unanswerable_abstention_rate": 0,
+        "answerable_abstention_rate": 0,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "requires manual claim-support review"
+      },
+      "citation_review": {
+        "reviewer": "Codex agent review; not independent human review",
+        "units": 21,
+        "counts": {
+          "supported": 20,
+          "unsupported": 1,
+          "uncertain": 0,
+          "pending": 0
+        },
+        "definitive_review_coverage": 1.0,
+        "citation_accuracy": 0.9523809523809523,
+        "partial_supported_fraction": 0.9523809523809523,
+        "note": "Claim-citation support precision; incomplete/uncertain reviews have no final accuracy. Abstentions and generation errors are reported separately, not treated as correct citations."
+      }
+    },
+    {
+      "strategy": "hybrid_reranked",
+      "report": "hybrid_reranked-held-out-v1.json",
+      "report_sha256": "616d612385cef15c06f9918b60e9f031a7ad380dbc2747d3ba0e13310bf50f2b",
+      "retrieval_and_generation": {
+        "rerank_status_counts": {
+          "applied": 12
+        },
+        "reranking_ms_median": 732.797649994609,
+        "questions": 12,
+        "answerable_questions": 10,
+        "unanswerable_questions": 2,
+        "recall_at_5": 0.95,
+        "mrr": 1.0,
+        "complete_evidence_at_5": 0.9,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.95,
+        "retrieval_ms_median": 753.055500004848,
+        "retrieval_ms_p95": 942.6245999929961,
+        "generation_attempts": 12,
+        "generation_status_counts": {
+          "error": 5,
+          "answered": 6,
+          "insufficient_evidence": 1
+        },
+        "unanswerable_abstention_rate": 0.5,
+        "answerable_abstention_rate": 0,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "requires manual claim-support review"
+      },
+      "citation_review": {
+        "reviewer": "Codex agent review; not independent human review",
+        "units": 10,
+        "counts": {
+          "supported": 8,
+          "unsupported": 2,
+          "uncertain": 0,
+          "pending": 0
+        },
+        "definitive_review_coverage": 1.0,
+        "citation_accuracy": 0.8,
+        "partial_supported_fraction": 0.8,
+        "note": "Claim-citation support precision; incomplete/uncertain reviews have no final accuracy. Abstentions and generation errors are reported separately, not treated as correct citations."
+      }
+    }
+  ]
+}

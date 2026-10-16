@@ -1,5 +1,8 @@
 # Phase 5, subphase 1: readiness review and vector baseline
 
+Historical review: the gate below was subsequently satisfied by the real integration
+test recorded in [PHASE5_STEP1_REVIEW.md](PHASE5_STEP1_REVIEW.md).
+
 Reviewed on 2026-10-16 against commit
 `9e67da9f7ef7c6352ac41ff0b83f11f34f61af2e`.
 

@@ -72,7 +72,7 @@
   - Clear separation of concerns: The client (Next.js) handles UI presentation, user interactions, and local state. The server (FastAPI) handles business logic, database persistence, and authorization.
   - Decoupled development: Either client or server can be refactored, scaled, or replaced independently as long as the REST API contract is preserved.
 
-- CORS (Cross‑Origin Resource Sharing):
+- CORS (Crossâ€‘Origin Resource Sharing):
   - Used to let a web server explicitly allow browsers to load resources or make requests from a different origin (domain, protocol, or port) than the one serving the page.
   - Browsers enforce the Same-Origin Policy by default and dispatch preflight `OPTIONS` requests for non-simple cross-origin requests.
   - The server answers with `Access-Control-Allow-Origin`, `Access-Control-Allow-Headers`, and `Access-Control-Allow-Methods` to permit the browser to proceed.
@@ -81,7 +81,7 @@
   - Bearer Tokens in `localStorage`: Easy to implement and inspect for SPAs, decoupled across different domains, but vulnerable to Cross-Site Scripting (XSS).
   - `HttpOnly` Cookies: Browser stores and attaches the cookie automatically; inaccessible to JavaScript, providing strong protection against XSS, but requires protection against Cross-Site Request Forgery (CSRF) and strict SameSite configurations.
 
-- Frontend → REST API Data Lifecycle:
+- Frontend â†’ REST API Data Lifecycle:
   - Client dispatches HTTP request (method, headers with `Authorization: Bearer <token>`, JSON body).
   - Server routes request, authenticates credentials, executes database queries, and returns HTTP status code (200 OK, 201 Created, 204 No Content, 401 Unauthorized, 422 Unprocessable Entity).
   - Client deserializes response JSON, updates React state, or intercepts errors (e.g. 401 triggers token cleanup and redirection to `/login`).
@@ -331,3 +331,141 @@ is neither persisted nor passed to the model in this first RAG implementation.
 The next phase compares dense, lexical, hybrid, and reranked retrieval on the same
 annotated questions. It should begin only after the real PostgreSQL-plus-LLM path
 is verified and the Phase 4 review is approved.
+
+## Phase 5, step 3: measuring retrieval and generation separately
+
+The development evaluator uses 33 questions: 30 with annotated evidence and three
+that cannot be answered from the corpus. Evidence Recall@5 is the fraction of
+required evidence strings found in the top five chunks, averaged per answerable
+question. MRR measures how early the first evidence-bearing chunk appears in the
+full ranking. Unanswerable questions have no relevant evidence target and are
+excluded from both metrics; their abstention behavior is measured separately.
+
+The vector baseline reached Recall@5 0.9833 and MRR 0.9000. One HNSW explanation
+crosses a chunk boundary, preventing a complete string match anywhere in the
+corpus. Even perfect ranking cannot fix that under the current metric. Page-hit
+accuracy was 100%, illustrating why page identity alone is insufficient.
+
+The same run produced six generation validation errors. Of three unanswerable
+questions, only one abstained; another failed validation and a third produced an
+unsupported claim. Exact quote matching proves provenance but does not guarantee
+the claim follows from the quote. An explicit agent review judged 45 of 50 emitted
+claim-citation pairs supported. Independent human review remains pending, and
+citation precision excludes errors and abstentions, so it must be read alongside
+generation status counts. Supported but irrelevant claims and incomplete answers
+also require separate quality review.
+
+See `backend/experiments/evaluation/RUNNER.md` for definitions and commands, and
+`RESULTS.md` in the same directory for the raw artifacts and limitations. Default
+runs use development only; held-out scoring requires an explicit opt-in. Freeze
+the metric definitions before comparing BM25, hybrid retrieval, and reranking.
+
+## Phase 5, step 4: BM25 lexical retrieval
+
+Dense retrieval compares learned representations of meaning. BM25 instead scores
+overlapping tokens: rare terms contribute more, repeated terms saturate, and chunk
+length adjusts the score. Our fixed baseline uses k1=1.2 and b=0.75, with Unicode
+normalization, case-folding, and alphanumeric tokens. It does not stem words or
+expand synonyms: `dog` and `puppy` do not match without another shared token.
+
+BM25 searches the same stored chunks as dense retrieval. Ownership and ready status
+filter the corpus before computing term frequencies and average chunk length;
+filtering only after scoring would let other workspaces influence the statistics.
+Scores are positive lexical relevance values, not cosine similarity or confidence.
+No overlap returns no hits rather than filling the result list with zero-score text.
+
+The development comparison kept corpus, questions, chunks, and metrics fixed.
+Both methods achieved evidence Recall@5 of 0.9833, while BM25 MRR was 0.9833 versus
+vector MRR of 0.9000. Five questions moved their first evidence hit from rank 2 to
+rank 1. The corpus is small and synthetic, so this does not establish that keyword
+search is universally superior. Shared exact terms can help BM25, while paraphrases
+without token overlap remain a weakness.
+
+The API currently rebuilds a workspace-local BM25 index per request and caps it at
+20,000 ready chunks. This keeps the baseline simple and current after mutations,
+but an indexed lexical backend is needed for larger collections. Benchmark query
+timings exclude this build cost and are not API latency measurements.
+
+See `backend/experiments/evaluation/BM25_RESULTS.md` for the formula, API contract,
+tests, and recorded comparison. Step 5 will combine the two ranked lists after
+review; it should not add raw BM25 and cosine scores because their scales differ.
+
+## Phase 5, step 5: reciprocal rank fusion
+
+Hybrid retrieval asks both dense and BM25 retrieval for candidates, then merges
+their rankings. Our RRF score sums `1 / (60 + rank)` for each branch containing a
+chunk. A chunk ranked first in both receives `2/61`; one ranked first in only one
+branch receives `1/61`. Raw cosine and BM25 scores remain diagnostics rather than
+inputs to the sum. Duplicate chunk IDs merge, but distinct chunks with the same
+text keep their separate provenance.
+
+Candidate retrieval and final context limits are separate: by default, each
+branch supplies up to 20 candidates, fusion ranks their union, and five chunks
+are returned. The per-branch limit can lose evidence before fusion on a larger
+corpus. Neither fusion nor a later reranker can recover chunks never retrieved.
+
+On the current development set, hybrid MRR was 0.9500 versus vector 0.9000 and BM25
+0.9833; all had evidence Recall@5 0.9833. Combining methods did not beat the stronger
+individual method on this small synthetic corpus. Preserve these results instead
+of adjusting parameters until hybrid appears best. Held-out evaluation remains
+reserved for the final frozen comparison.
+
+See `backend/experiments/evaluation/HYBRID_RESULTS.md` for configuration, source
+rank fields, failures, and the recorded candidate lists. Chat can opt into hybrid
+through `RAG_RETRIEVAL_METHOD`, while the default remains vector until the broader
+comparison is reviewed.
+
+
+## Phase 5, step 6: cross-encoder reranking
+
+Dense retrieval encodes query and passage separately. A cross-encoder reads the
+query/passage pair together and scores its relevance. This is more expensive,
+so apply it only after hybrid retrieval has produced a shortlist: up to 20 fused
+candidates, then the best five for generation. It cannot recover missing evidence
+outside that shortlist or repair a claim made incorrectly by the LLM.
+
+The local MiniLM cross-encoder returns raw relevance scores, including negative
+values. They are not confidence probabilities. Keep cosine, BM25, RRF and reranker
+scores separate; use the reranker score for final order and stable chunk UUIDs
+for ties. Preserve original text, document IDs and page numbers for citations.
+Oversized query/passage pairs, model failures and invalid scores explicitly fall
+back to hybrid order. Empty candidates skip inference.
+
+On the fixed development split, reranking improved hybrid MRR from 0.9500 to
+0.9833 but left evidence Recall@5 at 0.9833. Three questions moved first evidence
+from rank two to one; one regressed from one to two. CPU reranking added a median
+657 ms for ten corpus chunks. This illustrates a quality/latency tradeoff, not a
+universal improvement: BM25 already matched the resulting MRR on this dataset.
+See [the results and reproduction steps](backend/experiments/evaluation/RERANK_RESULTS.md).
+The held-out split and final four-strategy generation/citation comparison remain
+reserved for step 7 after approval.
+
+
+## Phase 5, step 7: why the final comparison matters
+
+The final fixed held-out comparison reverses the development-set preference:
+vector, hybrid and reranked hybrid reach MRR 1.00, while BM25 reaches 0.90. All
+four have evidence Recall@5 0.95. A method that wins on development examples need
+not win on unseen questions, especially with only one small synthetic document.
+
+Reranking adds latency (753 ms median retrieval versus vector's 16 ms) without
+improving held-out retrieval. Keep vector as the default for now; retain the
+other modes for experiments. Do not generalize this result to larger collections.
+
+Distinguish three failure types. A sentence split across chunks limits complete
+quoted evidence under this metric. A model can then produce invalid evidence
+format or an absent quote even with the right chunk retrieved. Finally, it can
+produce a valid exact quote that does not support the claim, or supported claims
+that do not answer the question. Retrieval scores, provenance validation and
+semantic answer quality measure different things.
+
+Across 48 generation attempts, 19 failed validation, 27 returned answers and two
+abstained. Agent citation review found 58/63 supported claim?citation pairs;
+this does not imply 58/63 correct answers. Claims differ in number per answer,
+and errors have no accepted claims. Review notes record unsupported, irrelevant,
+incomplete and repetitive output separately. Independent human review remains
+pending. See [the final report](backend/experiments/evaluation/FINAL_RESULTS.md)
+for per-strategy results, raw artifacts and reproduction steps.
+
+The original held-out split has now been used. Preserve its annotations and
+results, and collect new questions and representative documents before tuning.

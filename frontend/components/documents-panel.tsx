@@ -12,6 +12,7 @@ export function DocumentsPanel({ workspaceId }: { workspaceId: string }) {
   const [chunkSize, setChunkSize] = useState(1024);
   const [query, setQuery] = useState("");
   const [topK, setTopK] = useState(5);
+  const [method, setMethod] = useState<"vector" | "bm25" | "hybrid" | "hybrid_reranked">("vector");
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<SearchResult[] | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -105,22 +106,24 @@ export function DocumentsPanel({ workspaceId }: { workspaceId: string }) {
 
     <section className="rounded-xl border border-gray-200 bg-white p-6 space-y-4">
       <h3 className="text-lg font-semibold">Search document passages</h3>
-      <p className="text-sm text-gray-500">Search by meaning to inspect the most similar chunks. This returns source passages, not an AI-generated answer. Cosine similarity is not a confidence score.</p>
+      <p className="text-sm text-gray-500">Choose meaning-based vector search keyword matching with BM25, or combined hybrid ranking. Results include source passages. Scores rank results within each method; they are not confidence scores or comparable across methods.</p>
       <form className="flex flex-wrap gap-3" onSubmit={async (event) => {
         event.preventDefault();
         setSearching(true); setSearchError(null); setResults(null);
-        try { setResults(await documentsApi.search(workspaceId, query, topK)); }
+        try { setResults(await documentsApi.search(workspaceId, query, topK, method)); }
         catch (err) { setSearchError(err instanceof Error ? err.message : "Search failed."); }
         finally { setSearching(false); }
       }}>
         <input aria-label="Search query" value={query} maxLength={1024} onChange={(event) => setQuery(event.target.value)} placeholder="What does the document say about…?" className="min-w-48 flex-1 rounded border border-gray-300 p-2" />
         <label className="text-sm">Top-k <select value={topK} onChange={(event) => setTopK(Number(event.target.value))} className="rounded border border-gray-300 p-2">{[1, 3, 5, 10].map((k) => <option key={k}>{k}</option>)}</select></label>
+        <label className="text-sm">Method <select value={method} disabled={searching} onChange={(event) => { setMethod(event.target.value as "vector" | "bm25" | "hybrid" | "hybrid_reranked"); setResults(null); }} className="rounded border border-gray-300 p-2"><option value="vector">Vector (meaning)</option><option value="bm25">BM25 (keywords)</option><option value="hybrid">Hybrid (combined)</option><option value="hybrid_reranked">Hybrid + reranker</option></select></label>
         <button disabled={searching || !query.trim()} className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">{searching ? "Searching…" : "Search"}</button>
       </form>
       {searchError && <p role="alert" className="text-sm text-red-700">{searchError}</p>}
-      {results?.length === 0 && <p className="text-sm text-gray-500">No ready document chunks found in this workspace.</p>}
+      {results?.length === 0 && <p className="text-sm text-gray-500">No matching passages found in ready documents.</p>}
       {results?.map((result) => <article key={result.chunk_id} className="rounded border border-gray-200 p-4">
-        <p className="text-xs font-medium text-indigo-700">{result.filename} · page {result.page} · chunk {result.chunk_index} · cosine {result.similarity.toFixed(3)}</p>
+        {result.rerank_status === "fallback" && <p className="text-xs text-amber-700">Reranking unavailable; showing hybrid order.</p>}
+        <p className="text-xs font-medium text-indigo-700">{result.filename} · page {result.page} · chunk {result.chunk_index} · {result.retrieval_method === "hybrid_reranked" ? `Reranker ${result.rerank_score?.toFixed(3)}` : result.retrieval_method === "hybrid" ? `RRF ${result.fusion_score?.toFixed(4)}` : result.retrieval_method === "bm25" ? `BM25 ${result.bm25_score?.toFixed(3)}` : `cosine ${result.similarity?.toFixed(3)}`}</p>
         <p className="mt-2 text-sm whitespace-pre-wrap">{result.content}</p>
       </article>)}
     </section>

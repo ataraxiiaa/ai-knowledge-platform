@@ -1,0 +1,167 @@
+{
+  "run_id": "be4ed32f-2cf9-45c0-be91-b9599b5e130e",
+  "report_sha256": "616d612385cef15c06f9918b60e9f031a7ad380dbc2747d3ba0e13310bf50f2b",
+  "reviewer": "",
+  "items": [
+    {
+      "question_id": "rag-008",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A training journal records the cue, environment, response, and reward. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 1,
+        "chunk_id": "1e021518-d7dd-53e0-8462-900c7853f990",
+        "quote": "A training journal records the cue, environment, response, and reward so the caregiver can notice gradual progress rather than expecting instant obedience."
+      },
+      "judgment": null,
+      "notes": ""
+    },
+    {
+      "question_id": "rag-016",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A stable mount helps keep the target in view. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "A stable mount helps keep the target in view."
+      },
+      "judgment": null,
+      "notes": ""
+    },
+    {
+      "question_id": "rag-016",
+      "claim_index": 2,
+      "source_id": 2,
+      "claim": "Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field. [2]",
+      "source": {
+        "id": 2,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "Tracking becomes useful when the apparent motion of the sky would otherwise carry the target out of the field."
+      },
+      "judgment": null,
+      "notes": ""
+    },
+    {
+      "question_id": "rag-023",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A wilted plant is therefore not always asking for more water. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "515982a3-9249-53da-86cc-f47b70b2a53d",
+        "quote": "A wilted plant is therefore not always asking for more water."
+      },
+      "judgment": null,
+      "notes": ""
+    },
+    {
+      "question_id": "rag-023",
+      "claim_index": 2,
+      "source_id": 2,
+      "claim": "The observer records the date, approximate sky conditions, and equipment used. [2]",
+      "source": {
+        "id": 2,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 2,
+        "chunk_id": "7eca64b1-17b1-56da-94f6-d187aa40b4cd",
+        "quote": "The observer checks a star chart before going outside and records the date, approximate sky conditions, and equipment used."
+      },
+      "judgment": null,
+      "notes": ""
+    },
+    {
+      "question_id": "rag-031",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A layer of mulch can reduce evaporation from the soil surface. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "515982a3-9249-53da-86cc-f47b70b2a53d",
+        "quote": "A layer of mulch can reduce evaporation from the soil surface."
+      },
+      "judgment": null,
+      "notes": ""
+    },
+    {
+      "question_id": "rag-032",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A garden trial compares and records the treatment and weather. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "bdd7fa04-7376-5610-bbb5-f007823a23ce",
+        "quote": "A garden trial compares similar plants in nearby plots and records both the treatment and the weather."
+      },
+      "judgment": null,
+      "notes": ""
+    },
+    {
+      "question_id": "rag-032",
+      "claim_index": 2,
+      "source_id": 2,
+      "claim": "Observations taken one hot afternoon are insufficient. [2]",
+      "source": {
+        "id": 2,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "bdd7fa04-7376-5610-bbb5-f007823a23ce",
+        "quote": "Observations taken on one unusually hot afternoon are insufficient to establish a general rule."
+      },
+      "judgment": null,
+      "notes": ""
+    },
+    {
+      "question_id": "rag-032",
+      "claim_index": 3,
+      "source_id": 3,
+      "claim": "Good notes make it possible to compare observations. [3]",
+      "source": {
+        "id": 3,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 4,
+        "chunk_id": "bdd7fa04-7376-5610-bbb5-f007823a23ce",
+        "quote": "Good notes make it possible to separate a plausible explanation from a coincidence."
+      },
+      "judgment": null,
+      "notes": ""
+    },
+    {
+      "question_id": "rag-040",
+      "claim_index": 1,
+      "source_id": 1,
+      "claim": "A foreign key can help prevent invalid references by keeping records from pointing to missing parents. [1]",
+      "source": {
+        "id": 1,
+        "document": "authored-learning-notes",
+        "document_id": "1ec28b63-ce3d-51e9-ba72-7f8933e4d280",
+        "page": 5,
+        "chunk_id": "63ef0b44-3aad-5ef3-98a7-d29142adbc95",
+        "quote": "A foreign key describes a reference from one table to another and can help prevent records from pointing to missing parents."
+      },
+      "judgment": null,
+      "notes": ""
+    }
+  ]
+}
