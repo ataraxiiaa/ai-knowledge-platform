@@ -85,7 +85,9 @@ Set the generated `SECRET_KEY` in the root `.env`, then run:
 docker compose up --build
 ```
 
-Compose starts PostgreSQL and the backend, applies migrations, and checks `/ready`.
+Compose starts PostgreSQL, Redis, the API, an RQ worker, and the dispatcher;
+it applies migrations before the processing services start. Check their status
+and logs with `docker compose ps` and `docker compose logs -f worker dispatcher`.
 Existing database volumes require the baseline procedure above first. The frontend
 runs separately. Compose database credentials are for local development, and the
 PostgreSQL port is bound to `127.0.0.1`; use appropriate credentials for deployment.
@@ -102,7 +104,7 @@ PostgreSQL port is bound to `127.0.0.1`; use appropriate credentials for deploym
 | GET | `/workspaces` | List owned workspaces |
 | GET | `/workspaces/{id}` | Get owned workspace |
 | DELETE | `/workspaces/{id}` | Delete owned workspace and its documents |
-| POST | `/workspaces/{id}/documents` | Multipart PDF upload and synchronous ingestion |
+| POST | `/workspaces/{id}/documents` | Accept a PDF with 202; process it in the background |
 | GET | `/workspaces/{id}/documents` | List documents, statuses, errors, and chunk counts |
 | GET | `/workspaces/{id}/documents/{document_id}` | Get document status |
 | DELETE | `/workspaces/{id}/documents/{document_id}` | Remove document, chunks, and source PDF |
@@ -141,11 +143,11 @@ uv export --locked --no-dev --no-emit-project --format requirements-txt --output
 
 ## Phase 3: ingestion and retrieval
 
-The synchronous pipeline is PDF upload -> pypdf page extraction -> whitespace
+The processing pipeline is PDF upload -> pypdf page extraction -> whitespace
 cleaning -> fixed character windows -> FastEmbed CPU inference -> pgvector.
 `BAAI/bge-small-en-v1.5` produces 384-dimensional English text embeddings. The model
 downloads on first use; document text is processed locally, not sent to a remote API.
-The first upload can be slow, so optionally warm the model before serving traffic:
+The first indexing job can be slow, so optionally warm the model before serving traffic:
 
 ```sh
 cd backend
@@ -169,11 +171,11 @@ curl -X POST "$API_URL/workspaces/$WORKSPACE_ID/documents" \
   -F "file=@document.pdf" -F "chunk_size=1024" -F "chunk_overlap=64"
 ```
 
-A 201 response means the document record was created. Check `status`: `ready` means
-all chunks and vectors were committed; `failed` includes a safe error message and
-no partial chunks. `processing` is persisted before extraction starts. If a process
-dies during ingestion it can remain `processing`; refresh the list before retrying,
-then delete/reupload a stale document. There is no task queue or automatic retry yet.
+A 202 response means the PDF and a durable dispatch intent were accepted. Poll the
+document URL in the `Location` header. `ready` means all chunks and vectors were
+committed; `retrying` includes the next retry time, and `failed` includes a safe
+error message. Parsing and embedding run in the RQ worker, with bounded retries
+and expired-lease recovery.
 
 ```sh
 curl -X POST "$API_URL/workspaces/$WORKSPACE_ID/search" \
@@ -188,9 +190,9 @@ provides a baseline before measuring whether HNSW is needed.
 
 Defaults: 10 MiB uploads, 100 pages, 1 million cleaned characters, 5000 chunks.
 Encrypted PDFs and files without extractable text fail clearly. OCR, complex layout
-reconstruction, background jobs, and object-storage uploads are not implemented.
-Synchronous parsing/model work can exceed hosting request timeouts for large files;
-begin with small text-based PDFs and one server worker on a memory-appropriate host.
+reconstruction, and object-storage uploads are not implemented. Parsing and model
+work run in the background worker; begin with small text-based PDFs and one worker
+on a memory-appropriate host.
 
 ## Phase 4: your first RAG system
 
@@ -274,7 +276,8 @@ as untrusted data in the prompt; prompt separation is not a complete injection d
    timing/counts without logging questions, document text, credentials, or provider
    response bodies. For generation errors, use `/search` to inspect the context.
 
-Run isolated tests with `uv run --locked pytest`. To verify the entire live path,
+Run isolated tests with `uv run --locked pytest`. To verify the database and model
+path directly without RQ,
 configure an **empty disposable** `PHASE3_TEST_DATABASE_URL`, plus the LLM settings,
 and run from `backend/`:
 
@@ -282,7 +285,7 @@ and run from `backend/`:
 uv run --locked python scripts/verify_pgvector.py --chat
 ```
 
-This uploads a synthetic PDF, uses real local embeddings and PostgreSQL retrieval,
+This uploads a synthetic PDF, invokes ingestion directly, uses real local embeddings and PostgreSQL retrieval,
 calls the configured LLM, validates quote/source mappings, and checks tenant
 isolation and an empty workspace. It leaves migrated tables in the disposable
 database; use a new empty database for each run. The existing command without
@@ -410,3 +413,48 @@ nonempty databases and never uses `DATABASE_URL` from your `.env` as its target.
 Before production use, further work includes rate limiting, parser process isolation,
 reviewing session storage (tokens currently use localStorage), background ingestion,
 and evaluation on representative documents and queries.
+
+
+## Phase 6: background processing
+
+[Step 1 design](docs/PHASE6_BACKGROUND_PROCESSING.md) defines the queue lifecycle.
+[Step 2 infrastructure](docs/PHASE6_STEP2_REVIEW.md) adds Redis, a separate RQ
+worker, JSON jobs, worker healthchecks and a reproducible shared-storage smoke
+test. [Step 3](docs/PHASE6_STEP3_REVIEW.md) moves parsing, chunking and embedding
+to the RQ worker. Upload now returns 202 after recording a durable PostgreSQL
+dispatch intent, and document detail includes queued/processing/ready/failed
+state. [Step 4](docs/PHASE6_STEP4_REVIEW.md) adds stage labels and polling with
+backoff, pauses requests in background tabs, and gates search until a document is
+indexed. [Step 5](docs/PHASE6_STEP5_REVIEW.md) adds bounded retries for classified
+transient failures. [Step 6](docs/PHASE6_STEP6_REVIEW.md) recovers expired worker
+leases and republishes lost Redis jobs, with a guarded orphan-PDF cleanup command.
+[Step 7](docs/PHASE6_STEP7_REVIEW.md) validates the full queue-to-cited-chat path
+with real embeddings and records acceptance time separately from indexing time.
+
+The dispatcher scans expired leases every 30 seconds. Workers renew their
+two-minute lease while running; if a worker dies, the dispatcher retries within
+the document's saved attempt budget or marks it failed. The outbox republishes
+queued jobs after 60 seconds if Redis loses a delivery. Run a dry-run orphan scan
+in the backend container before explicitly applying removal of untracked PDFs
+older than one hour:
+
+```sh
+docker compose exec backend python scripts/cleanup_orphan_pdfs.py
+docker compose exec backend python scripts/cleanup_orphan_pdfs.py --apply
+```
+
+For a disposable integration run, prewarm `backend/.cache/embeddings`, set a
+generated root `.env` `SECRET_KEY`, and use a unique Compose project name:
+
+```sh
+docker build -t knowledge-phase6-step3-check backend
+docker compose -p phase6-e2e -f docker-compose.ingestion-test.yml up -d db redis migrate worker dispatcher
+docker compose -p phase6-e2e -f docker-compose.ingestion-test.yml run --rm --no-deps --entrypoint python probe scripts/verify_end_to_end.py
+docker compose -p phase6-e2e -f docker-compose.ingestion-test.yml down -v
+```
+
+The probe uses a real PDF, worker, embedding model, pgvector search and chat API.
+It uses a deterministic local OpenAI-compatible provider to verify the citation
+contract, so it does not measure language-model answer quality. The test Compose
+file has no host ports or production volumes; `down -v` removes only the named
+disposable project.

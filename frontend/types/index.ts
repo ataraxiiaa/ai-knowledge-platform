@@ -20,6 +20,10 @@ export interface Document {
   error: string | null;
   chunk_count: number;
   created_at: string;
+  updated_at: string;
+  attempt_count: number;
+  max_attempts: number;
+  next_retry_at: string | null;
 }
 
 export interface SearchResult {

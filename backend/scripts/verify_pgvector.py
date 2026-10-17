@@ -54,8 +54,20 @@ with TemporaryDirectory(prefix="pgvector-upload-", dir=ROOT / ".cache") as stora
         payload = pdf_bytes("A puppy is a young dog. Puppies learn with positive rewards. A canine companion needs patient training.")
         response = client.post(f"/workspaces/{workspace}/documents", headers=headers,
             files={"file": ("dogs.pdf", payload)}, data={"chunk_size": 64, "chunk_overlap": 8})
-        assert response.status_code == 201, response.text
+        assert response.status_code == 202, response.text
         document = response.json()
+        assert document["status"] == "queued" and document["chunk_count"] == 0
+        # This script checks DB/pipeline behavior; verify_background.py exercises Redis.
+        from app.db.session import SessionLocal
+        from app.models.documents import IngestionDispatch
+        from app.services.ingestion import process_document
+        from sqlalchemy import select
+        import uuid
+        with SessionLocal() as job_db:
+            dispatch_id = job_db.scalar(select(IngestionDispatch.id).where(
+                IngestionDispatch.document_id == uuid.UUID(document["id"])))
+        process_document(document["id"], str(dispatch_id))
+        document = client.get(response.headers["location"], headers=headers).json()
         assert document["status"] == "ready", document
         assert document["chunk_count"] > 1
         result = client.post(f"/workspaces/{workspace}/search", headers=headers, json={"query": "young canine", "top_k": 1})

@@ -1,4 +1,16 @@
 services:
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   db:
     image: pgvector/pgvector:pg16
     container_name: knowledge_platform_db
@@ -33,13 +45,84 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: 1440
       UPLOAD_DIR: /data/uploads
       EMBEDDING_CACHE_DIR: /data/models
+      REDIS_URL: redis://redis:6379/0
+      RQ_QUEUE_NAME: ${RQ_QUEUE_NAME:-ingestion}
+      RQ_JOB_TIMEOUT: ${RQ_JOB_TIMEOUT:-900}
+      INGESTION_MAX_ATTEMPTS: ${INGESTION_MAX_ATTEMPTS:-3}
     volumes:
       - ingestion_data:/data
-    command: ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["python", "-m", "app.worker"]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/knowledge_platform
+      SECRET_KEY: ${SECRET_KEY:?Set a generated SECRET_KEY in the root .env file}
+      REDIS_URL: redis://redis:6379/0
+      RQ_QUEUE_NAME: ${RQ_QUEUE_NAME:-ingestion}
+      RQ_JOB_TIMEOUT: ${RQ_JOB_TIMEOUT:-900}
+      UPLOAD_DIR: /data/uploads
+      EMBEDDING_CACHE_DIR: /data/models
+      EMBEDDING_THREADS: ${EMBEDDING_THREADS:-2}
+    volumes:
+      - ingestion_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.worker", "--healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    stop_grace_period: 16m
+
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/knowledge_platform
+      SECRET_KEY: ${SECRET_KEY:?Set a generated SECRET_KEY in the root .env file}
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      disable: true
+
+  dispatcher:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["python", "-m", "app.dispatcher"]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/knowledge_platform
+      SECRET_KEY: ${SECRET_KEY:?Set a generated SECRET_KEY in the root .env file}
+      REDIS_URL: redis://redis:6379/0
+      RQ_QUEUE_NAME: ${RQ_QUEUE_NAME:-ingestion}
+      RQ_JOB_TIMEOUT: ${RQ_JOB_TIMEOUT:-900}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.dispatcher", "--healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
 
 volumes:
+  redis_data:
   postgres_data:
   ingestion_data:

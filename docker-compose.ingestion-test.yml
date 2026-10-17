@@ -1,0 +1,62 @@
+# Disposable integration project. No host ports or application volumes.
+x-test-env: &test-env
+  SECRET_KEY: background-test-only-not-for-deployment-0123456789
+  DATABASE_URL: postgresql+psycopg://postgres:test-only@db:5432/ingestion_test
+  REDIS_URL: redis://redis:6379/0
+  UPLOAD_DIR: /data/uploads
+  EMBEDDING_CACHE_DIR: /data/models
+  HF_HUB_OFFLINE: "1"
+  PHASE6_TEST_MODE: "1"
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_PASSWORD: test-only
+      POSTGRES_DB: ingestion_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ingestion_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: redis:7.4-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+  migrate:
+    image: knowledge-phase6-step3-check
+    environment: *test-env
+    command: ["alembic", "upgrade", "head"]
+    healthcheck:
+      disable: true
+    depends_on:
+      db:
+        condition: service_healthy
+  worker:
+    extends:
+      file: docker-compose.yml
+      service: worker
+    image: knowledge-phase6-step3-check
+    environment: *test-env
+    volumes:
+      - ./backend/.cache/embeddings:/data/models:ro
+    stop_grace_period: 10s
+  dispatcher:
+    extends:
+      file: docker-compose.yml
+      service: dispatcher
+    image: knowledge-phase6-step3-check
+    environment: *test-env
+  probe:
+    image: knowledge-phase6-step3-check
+    environment: *test-env
+    volumes:
+      - ingestion_data:/data
+      - ./backend/.cache/embeddings:/data/models:ro
+    entrypoint: ["python", "scripts/verify_background.py"]
+    healthcheck:
+      disable: true
+volumes:
+  ingestion_data:

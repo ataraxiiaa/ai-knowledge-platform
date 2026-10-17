@@ -13,6 +13,10 @@ class DocumentResponse(BaseModel):
     error: str | None
     created_at: datetime
     chunk_count: int
+    updated_at: datetime
+    attempt_count: int
+    max_attempts: int
+    next_retry_at: datetime | None
 
     model_config = ConfigDict(from_attributes=True)
 

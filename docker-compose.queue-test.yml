@@ -1,0 +1,36 @@
+# Isolated infrastructure smoke test: no application database or published ports.
+services:
+  redis:
+    extends:
+      file: docker-compose.yml
+      service: redis
+  worker:
+    extends:
+      file: docker-compose.yml
+      service: worker
+    depends_on: !override
+      redis:
+        condition: service_healthy
+    image: knowledge-phase6-worker-check
+    environment:
+      SECRET_KEY: queue-smoke-only-not-for-deployment-0123456789
+      DATABASE_URL: "sqlite:///:memory:"
+    stop_grace_period: 10s
+  probe:
+    extends:
+      file: docker-compose.yml
+      service: worker
+    depends_on: !override
+      redis:
+        condition: service_healthy
+    image: knowledge-phase6-worker-check
+    restart: "no"
+    command: ["python", "scripts/verify_queue.py"]
+    environment:
+      SECRET_KEY: queue-smoke-only-not-for-deployment-0123456789
+      DATABASE_URL: "sqlite:///:memory:"
+    healthcheck:
+      disable: true
+volumes:
+  redis_data:
+  ingestion_data:

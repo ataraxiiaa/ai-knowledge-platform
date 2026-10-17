@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 
 from app.core.config import BACKEND_DIR, Settings
 
@@ -79,6 +79,7 @@ def test_migrations_and_startup_do_not_mutate_schema(tmp_path):
         subprocess.run([sys.executable, "-m", "alembic", *args], cwd=BACKEND_DIR, env=env, check=True, capture_output=True)
 
     migrate("upgrade", "head")
+
     migrate("check")
     engine = create_engine(url)
     assert {"users", "workspaces", "documents", "chunks"} <= set(inspect(engine).get_table_names())
@@ -88,3 +89,28 @@ def test_migrations_and_startup_do_not_mutate_schema(tmp_path):
     assert set(inspect(engine).get_table_names()) <= {"alembic_version"}
     engine.dispose()
     migrate("upgrade", "head")
+
+
+def test_background_migration_preserves_terminal_documents(tmp_path):
+    url = f"sqlite:///{(tmp_path / 'legacy.db').as_posix()}"
+    env = {**os.environ, "DATABASE_URL": url}
+    def migrate(*args):
+        subprocess.run([sys.executable, "-m", "alembic", *args], cwd=BACKEND_DIR,
+                       env=env, check=True, capture_output=True)
+    migrate("upgrade", "0002")
+    engine = create_engine(url)
+    with engine.begin() as db:
+        db.execute(text("INSERT INTO users (id,email,password_hash) VALUES (:id,'legacy@example.com','hash')"), {"id": "1" * 32})
+        db.execute(text("INSERT INTO workspaces (id,user_id,name) VALUES (:id,:user,'legacy')"), {"id": "2" * 32, "user": "1" * 32})
+        for i, status in enumerate(("ready", "failed", "processing", "pending"), 3):
+            db.execute(text("INSERT INTO documents (id,workspace_id,filename,status) VALUES (:id,:workspace,'old.pdf',:status)"),
+                       {"id": str(i) * 32, "workspace": "2" * 32, "status": status})
+    migrate("upgrade", "head")
+    migrate("check")
+    with engine.connect() as db:
+        rows = db.execute(text("SELECT status, error, chunk_size FROM documents ORDER BY id")).all()
+        assert [row.status for row in rows] == ["ready", "failed", "failed", "failed"]
+        assert rows[0].error is None and rows[1].error is None
+        assert "interrupted" in rows[2].error
+        assert all(row.chunk_size is None for row in rows)
+    engine.dispose()

@@ -469,3 +469,96 @@ for per-strategy results, raw artifacts and reproduction steps.
 
 The original held-out split has now been used. Preserve its annotations and
 results, and collect new questions and representative documents before tuning.
+
+
+## Phase 6, step 2: a queue is not a worker
+
+Redis stores queued work; an RQ worker is a separate Python process that executes
+it. Enqueueing a function does not run its code in the producer. The smoke test
+checks different process identities and a shared file hash, demonstrating both
+execution separation and storage access across containers. Queue arguments are
+small JSON values, not open files or request-bound database sessions.
+
+A Redis ping proves broker availability; a recent worker heartbeat proves that
+a consumer has checked in. Neither proves a PDF will index successfully. Redis
+persistence improves restart behavior, but durable dispatch, idempotency and
+retry/recovery policies belong to the next steps.
+
+
+## Phase 6, step 3: accept work durably before dispatch
+
+The upload endpoint writes a PDF and, in the same database transaction, the
+queued document plus an outbox dispatch record. It can return before Redis is
+available. A dispatcher publishes the record to RQ and retries on broker errors.
+PostgreSQL status lets the system recover intent even if Redis loses a message.
+
+There is no atomic transaction spanning PostgreSQL and Redis. A crash after
+publishing but before marking the outbox can publish the same work twice. Design
+for at-least-once delivery: the worker atomically claims a queued row, checks the
+dispatch ID, and uses a lease token before publishing. Duplicate or stale jobs
+become no-ops. The full chunk set and `ready` status commit together so retrieval
+cannot see a partial index.
+
+The database stores the chunk settings and embedding model used at acceptance,
+so a delayed worker does not silently process a PDF with changed defaults. Old
+in-progress rows lack these inputs; the migration marks them interrupted instead
+of guessing. New jobs allow three processing attempts by default; abandoned-lease
+recovery is an upcoming step. See the [step 3 review](docs/PHASE6_STEP3_REVIEW.md)
+for the migration, tests, operations and review boundary.
+
+
+## Phase 6, step 4: show job state without confusing it with network state
+
+The panel polls while at least one document is queued or processing, then stops
+at a terminal state. Polling errors get their own notice and back off; they do
+not change the document to failed. Hidden tabs pause network requests and refresh
+immediately when visible. Workspace changes cancel the prior polling loop and
+ignore any late response.
+
+Stages are useful indicators, not guaranteed percentage progress: a worker may
+move through a stage between polls. ?Uploading? covers the HTTP transfer and
+request; this UI does not report byte-level percentage. Search becomes available
+once the server reports an indexed document, consistent with ready-only retrieval.
+See the [step 4 review](docs/PHASE6_STEP4_REVIEW.md).
+
+## Phase 6, step 5: retry failed attempts without duplicating work
+
+The worker retries classified transient database and embedding transport failures,
+with three attempts and waits of 30 then 120 seconds by default. PostgreSQL stores
+the attempt count and next retry time. The dispatcher only releases a retry after
+that time; duplicate RQ deliveries cannot claim a retrying document or consume an
+extra attempt. Invalid PDFs, limits, and unknown errors fail immediately.
+
+The failure transition and dispatch reschedule commit together. The final chunk
+set and ready status also commit together, so a failed publish leaves no partial
+index. A killed worker may leave an active lease behind; lease recovery belongs
+to step 6. See the [step 5 review](docs/PHASE6_STEP5_REVIEW.md).
+
+## Phase 6, step 6: recover work after a worker disappears
+
+An RQ worker can die without running the exception handler. The dispatcher scans
+expired PostgreSQL leases every 30 seconds and transitions abandoned attempts to
+`retrying` or `failed` according to the existing attempt budget. A stale worker
+cannot renew its old token or publish chunks after recovery. The outbox remains
+the source for republishing queued jobs lost from Redis; multiple workers may see
+duplicate messages, but only one can claim the document.
+
+An upload may leave a file behind if the process dies between writing the PDF
+and committing its database row. The separate cleanup command lists only old,
+server-named PDFs without a matching row and requires `--apply` to remove them.
+The [step 6 review](docs/PHASE6_STEP6_REVIEW.md) records the disposable database,
+Redis, kill, concurrency, deletion, and lost-message probes.
+
+## Phase 6, step 7: measure acceptance and indexing separately
+
+The final disposable probe submitted a real PDF through the API while the Redis
+dispatcher and RQ worker were running. Acceptance returned 202 in 0.021 seconds;
+the document reached `ready` in 2.072 seconds on that run. Real FastEmbed vectors
+were stored as 384-dimensional pgvector values, then retrieved through vector
+search. A local deterministic OpenAI-compatible provider exercised `/chat` and
+the server's document, page, exact-quote, and citation checks. Fabricated
+provider evidence produced HTTP 502, and a malformed PDF failed once without
+partial chunks. These timings are one local sample, not a latency benchmark.
+
+The [step 7 review](docs/PHASE6_STEP7_REVIEW.md) includes commands, validation,
+and the boundary between tested citation mechanics and untested LLM quality.

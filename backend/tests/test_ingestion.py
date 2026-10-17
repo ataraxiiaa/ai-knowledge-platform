@@ -9,7 +9,7 @@ from app.api.documents import require_vector_database
 from app.core.config import settings
 from app.main import app
 from app.models.chunks import Chunk
-from app.models.documents import Document
+from app.models.documents import Document, IngestionDispatch
 from app.services import ingestion
 from app.services.text import IngestionError, chunk_pages, clean_text
 from app.services.embeddings import validate_vectors
@@ -44,6 +44,8 @@ def owner(client, email="owner@example.com"):
 def ingestion_client(client, monkeypatch):
     app.dependency_overrides[require_vector_database] = lambda: None
     monkeypatch.setattr(ingestion, "embed_texts", lambda texts: [[1.0] + [0.0] * 383 for _ in texts])
+    from conftest import TestingSessionLocal
+    monkeypatch.setattr(ingestion, "SessionLocal", TestingSessionLocal)
     yield client
     app.dependency_overrides.pop(require_vector_database, None)
 
@@ -65,8 +67,10 @@ def test_upload_extract_embed_list_and_delete(ingestion_client, db_session):
     response = ingestion_client.post(f"/workspaces/{workspace}/documents", headers=headers,
         files={"file": ("../../lesson.pdf", pdf_bytes(), "application/pdf")},
         data={"chunk_size": "64", "chunk_overlap": "8"})
-    assert response.status_code == 201
-    result = response.json()
+    assert response.status_code == 202
+    assert response.json()["status"] == "queued"
+    assert response.json()["chunk_count"] == 0
+    result = finish_job(ingestion_client, headers, response, db_session)
     assert result["status"] == "ready" and result["chunk_count"] >= 1
     assert result["filename"] == "lesson.pdf"
     assert "storage_path" not in result
@@ -87,9 +91,10 @@ def test_upload_extract_embed_list_and_delete(ingestion_client, db_session):
 def test_unreadable_pdf_records_failure(ingestion_client, db_session, data, expected):
     headers, workspace = owner(ingestion_client)
     response = ingestion_client.post(f"/workspaces/{workspace}/documents", headers=headers, files={"file": ("input.pdf", data)})
-    assert response.status_code == 201
-    assert response.json()["status"] == "failed"
-    assert expected in response.json()["error"]
+    assert response.status_code == 202
+    result = finish_job(ingestion_client, headers, response, db_session)
+    assert result["status"] == "failed"
+    assert expected in result["error"]
     assert db_session.scalar(select(func.count()).select_from(Chunk)) == 0
 
 
@@ -99,23 +104,26 @@ def test_embedding_failure_does_not_leave_chunks(ingestion_client, monkeypatch, 
         raise RuntimeError("private internal path or provider details")
     monkeypatch.setattr(ingestion, "embed_texts", fail)
     response = ingestion_client.post(f"/workspaces/{workspace}/documents", headers=headers, files={"file": ("input.pdf", pdf_bytes())})
-    assert response.json()["status"] == "failed"
-    assert "private" not in response.json()["error"]
-    assert response.json()["chunk_count"] == 0
+    result = finish_job(ingestion_client, headers, response, db_session)
+    assert result["status"] == "failed"
+    assert "private" not in result["error"]
+    assert result["chunk_count"] == 0
 
 
 def test_chunk_commit_failure_rolls_back_all_chunks(ingestion_client, monkeypatch, db_session):
     headers, workspace = owner(ingestion_client)
-    commit = db_session.commit
-    def fail_once_ready():
-        if any(isinstance(item, Chunk) for item in db_session.new):
-            db_session.flush()
+    from sqlalchemy.orm import Session
+    commit = Session.commit
+    def fail_once_ready(self):
+        if any(isinstance(item, Chunk) for item in self.new):
+            self.flush()
             raise RuntimeError("simulated commit failure")
-        commit()
-    monkeypatch.setattr(db_session, "commit", fail_once_ready)
+        commit(self)
+    monkeypatch.setattr(Session, "commit", fail_once_ready)
     response = ingestion_client.post(f"/workspaces/{workspace}/documents", headers=headers, files={"file": ("input.pdf", pdf_bytes())})
-    assert response.json()["status"] == "failed"
-    assert response.json()["chunk_count"] == 0
+    result = finish_job(ingestion_client, headers, response, db_session)
+    assert result["status"] == "failed"
+    assert result["chunk_count"] == 0
 
 
 def test_upload_size_type_and_overlap_validation(ingestion_client, monkeypatch, db_session):
@@ -159,3 +167,14 @@ def test_sqlite_ingestion_is_explicitly_unavailable(client):
 def test_invalid_embedding_output_is_rejected(vectors):
     with pytest.raises(IngestionError):
         validate_vectors(vectors, expected=1)
+
+
+def finish_job(client, headers, response, db):
+    import uuid
+    document_id = uuid.UUID(response.json()["id"])
+    dispatch = db.scalar(select(IngestionDispatch).where(IngestionDispatch.document_id == document_id))
+    dispatch_id = str(dispatch.id)
+    db.commit()
+    ingestion.process_document(str(document_id), dispatch_id)
+    db.expire_all()
+    return client.get(response.headers["location"], headers=headers).json()
