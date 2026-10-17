@@ -538,3 +538,14 @@ hits, misses, estimated latency and token savings at
 `CACHE_MODEL_PRICES_JSON` provides rates for the actual provider and model.
 Research drafts and incomplete model streams are not cached. See
 [cache design, invalidation, and benchmark](docs/PHASE10_CACHING.md).
+
+## Phase 11: observability
+
+FastAPI, model calls, retrieval, research stages, workers, and the dispatcher
+emit OpenTelemetry signals. The local Compose stack routes traces through the
+Collector to Tempo and metrics through the Collector to Prometheus. Grafana
+provisions the AI Knowledge Platform dashboard at `http://localhost:3001`;
+Prometheus is at `http://localhost:9090`. Configure a unique
+`GRAFANA_ADMIN_PASSWORD` in `.env` before starting the stack. Container CPU and
+memory come from cAdvisor. Enable the optional `gpu` Compose profile to collect
+NVIDIA GPU and VRAM metrics. See [Phase 11 setup and signal details](docs/PHASE11_OBSERVABILITY.md).

@@ -3,9 +3,11 @@ from functools import lru_cache
 import logging
 import math
 from threading import Lock
+from time import perf_counter
 
 from app.core.config import settings
 from app.schemas.documents import SearchResult
+from app.services import observability
 
 MODEL_NAME = "Xenova/ms-marco-MiniLM-L-6-v2"
 MAX_TOKENS = 512
@@ -41,6 +43,12 @@ def rerank_passages(query: str, candidates: list[SearchResult]) -> list[SearchRe
     candidates = candidates[:settings.RERANK_CANDIDATES]
     if not candidates:
         return []
+    started = perf_counter()
+    with observability.span("rag.reranking", {"rag.reranking.candidates": len(candidates)}) as span:
+        return _rerank_observed(query, candidates, started, span)
+
+
+def _rerank_observed(query, candidates, started, span):
     try:
         scores = score_passages(query, [hit.content for hit in candidates])
         if len(scores) != len(candidates) or not all(math.isfinite(score) for score in scores):
@@ -48,11 +56,17 @@ def rerank_passages(query: str, candidates: list[SearchResult]) -> list[SearchRe
     except Exception as exc:
         # Do not log query, source text, or exception messages containing credentials.
         logger.warning("Reranking unavailable (%s); using hybrid order", type(exc).__name__)
+        observability.record_reranking(perf_counter() - started, len(candidates), outcome="fallback")
+        if span is not None:
+            span.set_attribute("outcome", "fallback")
         return [hit.model_copy(update={"retrieval_method": "hybrid", "rerank_score": None,
                                        "rerank_status": "fallback"}) for hit in candidates]
     ranked = [hit.model_copy(update={"retrieval_method": "hybrid_reranked",
                                     "rerank_score": score, "rerank_status": "applied"})
               for hit, score in zip(candidates, scores)]
+    observability.record_reranking(perf_counter() - started, len(candidates), outcome="success")
+    if span is not None:
+        span.set_attribute("outcome", "success")
     return sorted(ranked, key=lambda hit: (-hit.rerank_score, hit.chunk_id.int))
 
 

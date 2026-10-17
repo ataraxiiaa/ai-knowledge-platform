@@ -20,6 +20,7 @@ from app.services import cache
 from app.services.embeddings import MODEL_NAME as EMBEDDING_MODEL_NAME
 from app.services.reranking import MODEL_NAME as RERANK_MODEL_NAME
 from app.services.text import IngestionError
+from app.services import observability
 
 logger = logging.getLogger(__name__)
 
@@ -29,34 +30,50 @@ def cached(method: str):
     def decorate(function):
         @wraps(function)
         def wrapped(query: str, top_k: int, workspace_id: uuid.UUID, db: Session) -> list[SearchResult]:
-            if not query.strip() or db is None:
-                return function(query, top_k, workspace_id, db)
-            revision = db.scalar(select(Workspace.corpus_revision).where(Workspace.id == workspace_id))
-            if revision is None:
-                return function(query, top_k, workspace_id, db)
-            configuration = {"embedding_model": EMBEDDING_MODEL_NAME,
-                "rerank_model": RERANK_MODEL_NAME,
-                "bm25_max": settings.BM25_MAX_CHUNKS,
-                "hybrid_candidates": settings.HYBRID_CANDIDATES,
-                "hybrid_rrf_k": settings.HYBRID_RRF_K,
-                "rerank_candidates": settings.RERANK_CANDIDATES}
-            cache_key = cache.key("retrieval", workspace_id, revision, method,
-                                  query.strip(), top_k, configuration)
-            hit = cache.get("retrieval", workspace_id, cache_key)
-            if hit and isinstance(hit.get("data"), list):
-                try:
-                    return [SearchResult.model_validate(item) for item in hit["data"]]
-                except (ValueError, TypeError):
-                    pass
             started = perf_counter()
-            results = function(query, top_k, workspace_id, db)
-            cache.put("retrieval", workspace_id, cache_key,
-                      [item.model_dump(mode="json") for item in results],
-                      settings.RETRIEVAL_CACHE_TTL_SECONDS,
-                      (perf_counter() - started) * 1000)
-            return results
+            with observability.span("rag.retrieval", {"rag.retrieval.method": method, "rag.top_k": top_k}) as current:
+                try:
+                    results = _retrieve_cached(function, query, top_k, workspace_id, db, method)
+                    if current is not None:
+                        current.set_attribute("rag.retrieval.chunks", len(results))
+                    observability.record_retrieval(method, perf_counter() - started, len(results))
+                    return results
+                except Exception:
+                    if current is not None:
+                        current.set_attribute("error", True)
+                    observability.record_retrieval(method, perf_counter() - started, 0)
+                    raise
         return wrapped
     return decorate
+
+
+def _retrieve_cached(function, query, top_k, workspace_id, db, method):
+    if not query.strip() or db is None:
+        return function(query, top_k, workspace_id, db)
+    revision = db.scalar(select(Workspace.corpus_revision).where(Workspace.id == workspace_id))
+    if revision is None:
+        return function(query, top_k, workspace_id, db)
+    configuration = {"embedding_model": EMBEDDING_MODEL_NAME,
+        "rerank_model": RERANK_MODEL_NAME,
+        "bm25_max": settings.BM25_MAX_CHUNKS,
+        "hybrid_candidates": settings.HYBRID_CANDIDATES,
+        "hybrid_rrf_k": settings.HYBRID_RRF_K,
+        "rerank_candidates": settings.RERANK_CANDIDATES}
+    cache_key = cache.key("retrieval", workspace_id, revision, method,
+                          query.strip(), top_k, configuration)
+    hit = cache.get("retrieval", workspace_id, cache_key)
+    if hit and isinstance(hit.get("data"), list):
+        try:
+            return [SearchResult.model_validate(item) for item in hit["data"]]
+        except (ValueError, TypeError):
+            pass
+    started = perf_counter()
+    results = function(query, top_k, workspace_id, db)
+    cache.put("retrieval", workspace_id, cache_key,
+              [item.model_dump(mode="json") for item in results],
+              settings.RETRIEVAL_CACHE_TTL_SECONDS,
+              (perf_counter() - started) * 1000)
+    return results
 
 
 @cached("hybrid")

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import api_router
 from app.core.config import settings
+from app.services import observability
 
 
 app = FastAPI(
@@ -10,6 +11,29 @@ app = FastAPI(
     version="0.1.0",
     description="API for AI Knowledge Platform",
 )
+observability.initialize("ai-knowledge-api")
+
+
+@app.middleware("http")
+async def observe_http(request, call_next):
+    from time import perf_counter
+
+    started = perf_counter()
+    status = 500
+    route = "unmatched"
+    with observability.span("http.server.request", {"http.request.method": request.method}) as current:
+        try:
+            response = await call_next(request)
+            status = response.status_code
+            return response
+        finally:
+            matched = request.scope.get("route")
+            if matched is not None:
+                route = getattr(matched, "path", "unmatched")
+            if current is not None:
+                current.set_attribute("http.route", route)
+                current.set_attribute("http.response.status_code", status)
+            observability.record_http(request.method, route, status, perf_counter() - started)
 
 # Enable CORS for frontend client communication
 app.add_middleware(

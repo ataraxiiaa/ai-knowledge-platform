@@ -74,6 +74,10 @@ services:
       GATEWAY_RETRY_BASE_SECONDS: ${GATEWAY_RETRY_BASE_SECONDS:-0.5}
       OPENAI_TOKEN_LIMIT_FIELD: ${OPENAI_TOKEN_LIMIT_FIELD:-max_tokens}
       RAG_RETRIEVAL_METHOD: ${RAG_RETRIEVAL_METHOD:-vector}
+      OTEL_ENABLED: ${OTEL_ENABLED:-true}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_ENVIRONMENT: ${OTEL_ENVIRONMENT:-local}
+      OTEL_SERVICE_NAME: ai-knowledge-api
     volumes:
       - ingestion_data:/data
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
@@ -96,6 +100,10 @@ services:
       EMBEDDING_CACHE_TTL_SECONDS: ${EMBEDDING_CACHE_TTL_SECONDS:-86400}
       CACHE_MAX_VALUE_BYTES: ${CACHE_MAX_VALUE_BYTES:-524288}
       RQ_JOB_TIMEOUT: ${RQ_JOB_TIMEOUT:-900}
+      OTEL_ENABLED: ${OTEL_ENABLED:-true}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_ENVIRONMENT: ${OTEL_ENVIRONMENT:-local}
+      OTEL_SERVICE_NAME: ai-knowledge-worker
       UPLOAD_DIR: /data/uploads
       EMBEDDING_CACHE_DIR: /data/models
       EMBEDDING_THREADS: ${EMBEDDING_THREADS:-2}
@@ -152,6 +160,10 @@ services:
       GATEWAY_MAX_ATTEMPTS: ${GATEWAY_MAX_ATTEMPTS:-2}
       GATEWAY_RETRY_BASE_SECONDS: ${GATEWAY_RETRY_BASE_SECONDS:-0.5}
       OPENAI_TOKEN_LIMIT_FIELD: ${OPENAI_TOKEN_LIMIT_FIELD:-max_tokens}
+      OTEL_ENABLED: ${OTEL_ENABLED:-true}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_ENVIRONMENT: ${OTEL_ENVIRONMENT:-local}
+      OTEL_SERVICE_NAME: ai-knowledge-worker
     volumes:
       - ingestion_data:/data
     depends_on:
@@ -195,6 +207,10 @@ services:
       RQ_JOB_TIMEOUT: ${RQ_JOB_TIMEOUT:-900}
       RESEARCH_QUEUE_NAME: ${RESEARCH_QUEUE_NAME:-research}
       RESEARCH_JOB_TIMEOUT: ${RESEARCH_JOB_TIMEOUT:-3600}
+      OTEL_ENABLED: ${OTEL_ENABLED:-true}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_ENVIRONMENT: ${OTEL_ENVIRONMENT:-local}
+      OTEL_SERVICE_NAME: ai-knowledge-dispatcher
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -205,7 +221,95 @@ services:
       start_period: 20s
       retries: 3
 
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.163.0
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol-contrib/config.yml"]
+    volumes:
+      - ./observability/otel-collector.yml:/etc/otelcol-contrib/config.yml:ro
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+    depends_on:
+      - tempo
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      - otel-collector
+      - cadvisor
+
+  tempo:
+    image: grafana/tempo:3.0.0
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo.yml"]
+    volumes:
+      - ./observability/tempo.yml:/etc/tempo.yml:ro
+      - tempo_data:/var/tempo
+
+  grafana:
+    image: grafana/grafana:12.2.0
+    restart: unless-stopped
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set a generated GRAFANA_ADMIN_PASSWORD in the root .env file}
+      GF_USERS_DEFAULT_THEME: light
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      - prometheus
+      - tempo
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    command: ["--docker_only=true", "--housekeeping_interval=15s"]
+    expose:
+      - "8080"
+
+  dcgm-exporter:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:4.4.1-4.5.0-ubuntu22.04
+    profiles: [gpu]
+    restart: unless-stopped
+    cap_add: [SYS_ADMIN]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    expose:
+      - "9400"
+
 volumes:
   redis_data:
   postgres_data:
   ingestion_data:
+  prometheus_data:
+  tempo_data:
+  grafana_data:

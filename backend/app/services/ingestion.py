@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta, timezone
 import logging
 from threading import Event, Thread
+from time import perf_counter
 import uuid
 
 import httpx
@@ -16,6 +17,7 @@ from app.services.model_gateway import embed as embed_texts
 from app.services.storage import document_path
 from app.services.text import IngestionError, chunk_pages, extract_pages
 from app.core.config import settings
+from app.services import observability
 
 logger = logging.getLogger(__name__)
 LEASE_SECONDS = 120
@@ -57,7 +59,10 @@ def touch(document_id, token, **values):
         return bool(changed)
 
 
+@observability.job_span("ingestion", "document_ingestion")
 def process_document(document_id: str, dispatch_id: str) -> None:
+    job_started = perf_counter()
+    job_outcome = "abandoned"
     document_id, dispatch_id = uuid.UUID(document_id), uuid.UUID(dispatch_id)
     token = uuid.uuid4()
     with SessionLocal() as db:
@@ -128,8 +133,12 @@ def process_document(document_id: str, dispatch_id: str) -> None:
             db.execute(update(Workspace).where(Workspace.id == workspace_id).values(
                 corpus_revision=Workspace.corpus_revision + 1))
             db.commit()
+        job_outcome = "completed"
     except Exception as exc:
         retry = retryable_failure(exc, stage) and attempt_count < max_attempts
+        job_outcome = "retrying" if retry else "failed"
+        if retry:
+            observability.record_retry("ingestion", "document_ingestion")
         logger.warning("Document ingestion %s for %s on attempt %s/%s (%s)",
                        "retry scheduled" if retry else "failed", document_id,
                        attempt_count, max_attempts, type(exc).__name__)
@@ -156,3 +165,5 @@ def process_document(document_id: str, dispatch_id: str) -> None:
     finally:
         stopped.set()
         thread.join(timeout=5)
+        observability.record_job("ingestion", "document_ingestion", job_outcome,
+                                 perf_counter() - job_started)

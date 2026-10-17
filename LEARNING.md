@@ -611,3 +611,13 @@ TTLs bound unused data, while Redis outages leave the normal path available.
 The owner-only metrics distinguish measured hits and provider tokens avoided
 from estimated latency and API cost savings. See
 [the cache design and benchmark](docs/PHASE10_CACHING.md).
+
+## Phase 11: connect application work to system behavior
+
+OpenTelemetry makes a request, its retrieval, and its model generation visible
+as named traces and metrics. The same instrumentation runs in the API, RQ
+workers, and dispatcher. Prometheus stores time series, Tempo stores traces, and
+Grafana presents request latency and errors beside model, retrieval, job, and
+container measurements. Keep labels bounded and exclude prompts, source text,
+and tenant identifiers so telemetry stays useful without becoming a copy of
+user data. See [the local observability setup](docs/PHASE11_OBSERVABILITY.md).

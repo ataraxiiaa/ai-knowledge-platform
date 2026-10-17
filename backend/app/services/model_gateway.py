@@ -14,6 +14,7 @@ import httpx
 
 from app.core.config import settings
 from app.services import cache
+from app.services import observability
 
 logger = logging.getLogger(__name__)
 Task = Literal["chat", "research_plan", "research_draft"]
@@ -331,14 +332,24 @@ def generate(task: Task, request: GenerateRequest) -> Generation:
     for route_index, (provider_name, model) in enumerate(routes):
         provider = _provider(provider_name)
         for attempt in range(1, settings.GATEWAY_MAX_ATTEMPTS + 1):
+            started = perf_counter()
             try:
-                result = provider.generate(model, request)
+                with observability.span("llm.generate", {"app.model.task": task,
+                        "gen_ai.provider.name": provider_name, "gen_ai.request.model": model,
+                        "retry.attempt": attempt}) as span:
+                    result = provider.generate(model, request)
+                    if span is not None:
+                        span.set_attribute("outcome", "success")
+                observability.record_model(result.provider, result.model, task,
+                                           perf_counter() - started, usage=result.usage)
                 logger.info("Model generation task=%s provider=%s model=%s input_tokens=%s output_tokens=%s",
                     task, result.provider, result.model,
                     result.usage.input_tokens if result.usage else None,
                     result.usage.output_tokens if result.usage else None)
                 return result
             except ModelError as exc:
+                observability.record_model(provider_name, model, task, perf_counter() - started,
+                                           error=exc.kind)
                 if not exc.transient:
                     raise
                 if attempt < settings.GATEWAY_MAX_ATTEMPTS:
@@ -358,12 +369,28 @@ def stream(task: Task, request: GenerateRequest) -> Iterator[StreamChunk]:
         provider = _provider(provider_name)
         for attempt in range(1, settings.GATEWAY_MAX_ATTEMPTS + 1):
             emitted = False
+            started = perf_counter()
+            first_token = None
+            usage = None
             try:
-                for chunk in provider.stream(model, request):
-                    emitted = True
-                    yield chunk
+                with observability.span("llm.stream", {"app.model.task": task,
+                        "gen_ai.provider.name": provider_name, "gen_ai.request.model": model,
+                        "retry.attempt": attempt}) as span:
+                    for chunk in provider.stream(model, request):
+                        emitted = True
+                        if chunk.text and first_token is None:
+                            first_token = perf_counter() - started
+                        if chunk.usage is not None:
+                            usage = chunk.usage
+                        yield chunk
+                    if span is not None:
+                        span.set_attribute("outcome", "success")
+                observability.record_model(provider_name, model, task, perf_counter() - started,
+                                           usage=usage, ttft=first_token)
                 return
             except ModelError as exc:
+                observability.record_model(provider_name, model, task, perf_counter() - started,
+                                           usage=usage, error=exc.kind, ttft=first_token)
                 if emitted or not exc.transient:
                     raise
                 if attempt < settings.GATEWAY_MAX_ATTEMPTS:
@@ -396,7 +423,12 @@ def embed(texts: list[str], workspace_id: uuid.UUID | None = None) -> list[list[
             missing[cache_key] = (value, [index])
     if missing:
         started = perf_counter()
-        computed = LocalEmbeddingProvider().embed([item[0] for item in missing.values()])
+        try:
+            computed = LocalEmbeddingProvider().embed([item[0] for item in missing.values()])
+        except Exception:
+            observability.record_embedding(perf_counter() - started, 0, outcome="error")
+            raise
+        observability.record_embedding(perf_counter() - started, len(computed), outcome="success")
         elapsed_ms = (perf_counter() - started) * 1000 / len(missing)
         for (cache_key, (_, indices)), vector in zip(missing.items(), computed, strict=True):
             for index in indices:

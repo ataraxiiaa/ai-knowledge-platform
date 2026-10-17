@@ -2,6 +2,7 @@
 from datetime import timedelta
 import logging
 from threading import Event, Thread
+from time import perf_counter
 import uuid
 
 from sqlalchemy import delete, exists, select, update
@@ -14,6 +15,7 @@ from app.services.research_logic import (
     ResearchError, ResearchInvalidJSON, ResearchTransientError, draft_report, ensure_live_sources,
     plan_questions, retrieve_evidence, verify_report,
 )
+from app.services import observability
 
 logger = logging.getLogger(__name__)
 LEASE_SECONDS = 120
@@ -117,7 +119,10 @@ def complete_job(job_id: uuid.UUID, token: uuid.UUID) -> bool:
         return True
 
 
+@observability.job_span("research", "research_job")
 def process_research_job(job_id: str, dispatch_id: str) -> None:
+    job_started = perf_counter()
+    job_outcome = "abandoned"
     job_id, dispatch_id = uuid.UUID(job_id), uuid.UUID(dispatch_id)
     token = uuid.uuid4()
     with SessionLocal() as db:
@@ -163,35 +168,42 @@ def process_research_job(job_id: str, dispatch_id: str) -> None:
             if stage == "PLANNING":
                 if not begin_step(job_id, token, stage, {"query": query}):
                     return
-                if not checkpoint(job_id, token, stage, "RETRIEVING", plan_questions(query)):
+                with observability.research_stage(stage):
+                    output = plan_questions(query)
+                if not checkpoint(job_id, token, stage, "RETRIEVING", output):
                     return
             elif stage == "RETRIEVING":
                 if not begin_step(job_id, token, stage, plan or {}):
                     return
-                if not checkpoint(job_id, token, stage, "SYNTHESIZING",
-                                  retrieve_evidence(plan, workspace_id, method)):
+                with observability.research_stage(stage):
+                    output = retrieve_evidence(plan, workspace_id, method)
+                if not checkpoint(job_id, token, stage, "SYNTHESIZING", output):
                     return
             elif stage == "SYNTHESIZING":
                 if not begin_step(job_id, token, stage, {"plan": plan, "evidence": evidence or []}):
                     return
-                if not checkpoint(job_id, token, stage, "VERIFYING",
-                                  draft_report(query, plan, evidence or [])):
+                with observability.research_stage(stage):
+                    output = draft_report(query, plan, evidence or [])
+                if not checkpoint(job_id, token, stage, "VERIFYING", output):
                     return
             elif stage == "VERIFYING":
                 if not begin_step(job_id, token, stage, {"plan": plan, "evidence": evidence or [],
                                                          "draft": draft}):
                     return
                 with SessionLocal() as db:
-                    verified = verify_report(plan, evidence or [], draft, db)
+                    with observability.research_stage(stage):
+                        verified = verify_report(plan, evidence or [], draft, db)
                 if not checkpoint(job_id, token, stage, "SAVING", verified):
                     return
             elif stage == "SAVING":
-                with SessionLocal() as db:
-                    verified_result = db.scalar(select(ResearchJob.verified_result).where(
-                        ResearchJob.id == job_id))
-                if not begin_step(job_id, token, stage, {"verified_result": verified_result}):
-                    return
-                complete_job(job_id, token)
+                with observability.research_stage(stage):
+                    with SessionLocal() as db:
+                        verified_result = db.scalar(select(ResearchJob.verified_result).where(
+                            ResearchJob.id == job_id))
+                    if not begin_step(job_id, token, stage, {"verified_result": verified_result}):
+                        return
+                    complete_job(job_id, token)
+                    job_outcome = "completed"
                 return
             else:
                 raise ResearchError("Research job has an invalid stage.")
@@ -199,6 +211,9 @@ def process_research_job(job_id: str, dispatch_id: str) -> None:
         transient = isinstance(exc, (ResearchTransientError, OperationalError,
                                      DisconnectionError, DatabaseTimeoutError))
         retry = transient and attempt_count < min(max_attempts, 2 if isinstance(exc, ResearchInvalidJSON) else max_attempts)
+        job_outcome = "retrying" if retry else "failed"
+        if retry:
+            observability.record_retry("research", "research_job")
         logger.warning("Research job %s on attempt %s/%s (%s)",
                        "retry scheduled" if retry else "failed", attempt_count,
                        max_attempts, type(exc).__name__)
@@ -235,3 +250,5 @@ def process_research_job(job_id: str, dispatch_id: str) -> None:
     finally:
         stopped.set()
         thread.join(timeout=5)
+        observability.record_job("research", "research_job", job_outcome,
+                                 perf_counter() - job_started)

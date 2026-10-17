@@ -10,7 +10,9 @@ from app.db.session import SessionLocal
 from app.models.documents import Document, IngestionDispatch
 from app.models.research import ResearchDispatch, ResearchJob, ResearchJobStep
 from app.services.ingestion import now, retry_delay_seconds
-from app.services.queue import ingestion_queue, research_queue
+from app.services.queue import ingestion_queue, research_queue, redis_connection
+from app.services import observability
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 HEARTBEAT = Path("/tmp/ingestion-dispatcher-heartbeat")
@@ -191,6 +193,9 @@ def main():
     if args.healthcheck:
         raise SystemExit(0 if HEARTBEAT.exists() and time.time() - HEARTBEAT.stat().st_mtime < 120 else 1)
     logging.basicConfig(level=logging.INFO)
+    connection = redis_connection()
+    observability.initialize("ai-knowledge-dispatcher")
+    observability.observe_rq_queues(connection, settings.RQ_QUEUE_NAME, settings.RESEARCH_QUEUE_NAME)
     last_recovery = 0.0
     while True:
         try:
