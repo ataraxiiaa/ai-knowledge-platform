@@ -577,3 +577,16 @@ The report's references point to server-owned document, page, chunk, and exact
 quote metadata. That verifies provenance and quote presence, not whether the
 quote truly supports the claim. Gaps remain visible where a planned question has
 no supported claim. See the [research job design and probe](docs/PHASE7_RESEARCH_JOBS.md).
+
+## Phase 8: checkpointing and failure recovery
+
+Stage checkpoints now have explicit database records. A completed step and its
+next-stage transition commit together. VERIFY saves a checked report; SAVE
+publishes that report atomically and can retry without repeating the earlier
+work. Worker leases fence stale attempts, and the dispatcher resumes the last
+unfinished stage after a crash. Retry delays grow from 30 to 120 seconds, while
+malformed model JSON gets only one replay.
+
+Fault-injection tests distinguish a failed stage from a failed job and show the
+limit of durable execution: an external call may run twice if the worker crashes
+before committing its output. See [the failure matrix and guarantees](docs/PHASE8_CHECKPOINTING.md).

@@ -69,7 +69,16 @@ export interface ChatResponse {
   status: "answered" | "insufficient_evidence";
 }
 
-export type ResearchStage = "PLANNING" | "RETRIEVING" | "SYNTHESIZING" | "VERIFYING" | "COMPLETED";
+export type ResearchStage = "PLANNING" | "RETRIEVING" | "SYNTHESIZING" | "VERIFYING" | "SAVING" | "COMPLETED";
+
+export interface ResearchStepSummary {
+  stage: Exclude<ResearchStage, "COMPLETED">;
+  status: "running" | "completed" | "failed";
+  attempt_count: number;
+  started_at: string | null;
+  completed_at: string | null;
+  error: string | null;
+}
 export type ResearchStatus = "queued" | "running" | "retrying" | "completed" | "failed";
 
 export interface ResearchJobSummary {
@@ -108,4 +117,5 @@ export interface ResearchJobDetail extends ResearchJobSummary {
   plan: { questions: string[] } | null;
   evidence: ResearchEvidence[] | null;
   result: ResearchReport | null;
+  steps: ResearchStepSummary[];
 }

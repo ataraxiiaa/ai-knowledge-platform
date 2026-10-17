@@ -7,7 +7,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { researchApi, workspacesApi } from "@/lib/api";
 import type { ResearchJobDetail, ResearchJobSummary, ResearchStage, Workspace } from "@/types";
 
-const stages: ResearchStage[] = ["PLANNING", "RETRIEVING", "SYNTHESIZING", "VERIFYING", "COMPLETED"];
+const stages: ResearchStage[] = ["PLANNING", "RETRIEVING", "SYNTHESIZING", "VERIFYING", "SAVING", "COMPLETED"];
 const activeStatuses = new Set(["queued", "running", "retrying"]);
 
 function ResearchConsole() {
@@ -175,6 +175,11 @@ function ResearchConsole() {
                       </li>;
                     })}
                   </ol>
+                  {selected.steps.length > 0 && <div className="text-xs text-gray-600">
+                    {selected.steps.map((step) => <p key={step.stage}>
+                      {step.stage.toLowerCase()}: {step.status} after {step.attempt_count} attempt{step.attempt_count === 1 ? "" : "s"}
+                    </p>)}
+                  </div>}
                   {selected.plan && <div>
                     <h3 className="font-semibold text-gray-900">Planned questions</h3>
                     <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-gray-700">

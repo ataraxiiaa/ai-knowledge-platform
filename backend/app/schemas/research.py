@@ -23,7 +23,7 @@ class ResearchJobSummary(BaseModel):
     workspace_id: uuid.UUID
     query: str
     status: Literal["queued", "running", "retrying", "completed", "failed"]
-    current_stage: Literal["PLANNING", "RETRIEVING", "SYNTHESIZING", "VERIFYING", "COMPLETED"]
+    current_stage: Literal["PLANNING", "RETRIEVING", "SYNTHESIZING", "VERIFYING", "SAVING", "COMPLETED"]
     retrieval_method: str
     error: str | None
     attempt_count: int
@@ -38,4 +38,16 @@ class ResearchJobDetail(ResearchJobSummary):
     plan: dict[str, Any] | None
     evidence: list[dict[str, Any]] | None
     result: dict[str, Any] | None
+    steps: list["ResearchStepSummary"]
+
+
+class ResearchStepSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    stage: Literal["PLANNING", "RETRIEVING", "SYNTHESIZING", "VERIFYING", "SAVING"]
+    status: Literal["running", "completed", "failed"]
+    attempt_count: int
+    started_at: datetime | None
+    completed_at: datetime | None
+    error: str | None
 

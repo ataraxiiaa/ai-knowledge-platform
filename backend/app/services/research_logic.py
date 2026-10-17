@@ -25,6 +25,10 @@ class ResearchTransientError(ResearchError):
     """Provider or retrieval availability merits a bounded retry."""
 
 
+class ResearchInvalidJSON(ResearchTransientError):
+    """One replay may recover malformed model output."""
+
+
 class ResearchInvalidated(ResearchError):
     """A source document was deleted or became unavailable."""
 
@@ -107,7 +111,9 @@ def complete_json(system_prompt: str, payload: dict, max_tokens: int) -> str:
 
 def plan_questions(query: str) -> dict:
     try:
-        plan = Plan.model_validate_json(complete_json(PLAN_PROMPT, {"request": query}, 700))
+        plan = Plan.model_validate(json.loads(complete_json(PLAN_PROMPT, {"request": query}, 700)))
+    except json.JSONDecodeError as exc:
+        raise ResearchInvalidJSON("Research planner returned invalid JSON.") from exc
     except ValidationError as exc:
         raise ResearchError("Research planner returned an invalid plan.") from exc
     questions = [question.strip() for question in plan.questions]
@@ -138,6 +144,8 @@ def retrieve_evidence(plan: dict, workspace_id: uuid.UUID, method: str) -> list[
                 if exc.status_code >= 500:
                     raise ResearchTransientError("Research retrieval temporarily unavailable.") from exc
                 raise ResearchError("Research retrieval rejected a planned question.") from exc
+            except (OSError, ConnectionError, TimeoutError) as exc:
+                raise ResearchTransientError("Research retrieval temporarily unavailable.") from exc
             for hit in hits:
                 if hit.chunk_id in by_chunk:
                     by_chunk[hit.chunk_id]["question_indices"].append(question_index)
@@ -169,8 +177,10 @@ def draft_report(query: str, plan: dict, evidence: list[dict]) -> dict:
         return {"sections": [{"question_index": i, "claims": []}
                              for i in range(1, len(plan["questions"]) + 1)]}
     try:
-        draft = Draft.model_validate_json(complete_json(DRAFT_PROMPT,
-            {"request": query, "questions": plan["questions"], "evidence": evidence}, 3500))
+        draft = Draft.model_validate(json.loads(complete_json(DRAFT_PROMPT,
+            {"request": query, "questions": plan["questions"], "evidence": evidence}, 3500)))
+    except json.JSONDecodeError as exc:
+        raise ResearchInvalidJSON("Research writer returned invalid JSON.") from exc
     except ValidationError as exc:
         raise ResearchError("Research writer returned an invalid draft.") from exc
     indexes = [section.question_index for section in draft.sections]

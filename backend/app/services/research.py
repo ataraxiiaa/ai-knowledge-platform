@@ -8,10 +8,10 @@ from sqlalchemy import delete, exists, select, update
 from sqlalchemy.exc import DisconnectionError, OperationalError, TimeoutError as DatabaseTimeoutError
 
 from app.db.session import SessionLocal
-from app.models.research import ResearchDispatch, ResearchJob, ResearchJobSource
+from app.models.research import ResearchDispatch, ResearchJob, ResearchJobSource, ResearchJobStep
 from app.services.ingestion import now, retry_delay_seconds
 from app.services.research_logic import (
-    ResearchError, ResearchTransientError, draft_report, ensure_live_sources,
+    ResearchError, ResearchInvalidJSON, ResearchTransientError, draft_report, ensure_live_sources,
     plan_questions, retrieve_evidence, verify_report,
 )
 
@@ -34,7 +34,8 @@ def touch(job_id: uuid.UUID, token: uuid.UUID) -> bool:
 
 def checkpoint(job_id: uuid.UUID, token: uuid.UUID, stage: str,
                next_stage: str, payload: dict | list) -> bool:
-    field = {"PLANNING": "plan", "RETRIEVING": "evidence", "SYNTHESIZING": "draft"}[stage]
+    field = {"PLANNING": "plan", "RETRIEVING": "evidence", "SYNTHESIZING": "draft",
+             "VERIFYING": "verified_result"}[stage]
     with SessionLocal() as db:
         changed = db.execute(update(ResearchJob).where(*owned_job(job_id, token),
             ResearchJob.current_stage == stage).values(
@@ -47,6 +48,34 @@ def checkpoint(job_id: uuid.UUID, token: uuid.UUID, stage: str,
             ensure_live_sources(payload, db)
             for document_id in {uuid.UUID(item["document_id"]) for item in payload}:
                 db.add(ResearchJobSource(job_id=job_id, document_id=document_id))
+        step = db.get(ResearchJobStep, (job_id, stage))
+        if step is None:
+            step = ResearchJobStep(job_id=job_id, stage=stage, attempt_count=1)
+            db.add(step)
+        step.status = "completed"
+        step.output = payload
+        step.completed_at = now()
+        step.error = None
+        db.commit()
+        return True
+
+
+def begin_step(job_id: uuid.UUID, token: uuid.UUID, stage: str, payload: dict | list) -> bool:
+    with SessionLocal() as db:
+        if db.scalar(select(ResearchJob.id).where(*owned_job(job_id, token),
+                ResearchJob.current_stage == stage)) is None:
+            return False
+        step = db.get(ResearchJobStep, (job_id, stage))
+        if step is None:
+            step = ResearchJobStep(job_id=job_id, stage=stage, attempt_count=0)
+            db.add(step)
+        if step.status == "completed":
+            return False
+        step.status = "running"
+        step.input = payload
+        step.attempt_count += 1
+        step.started_at = now()
+        step.error = None
         db.commit()
         return True
 
@@ -54,22 +83,35 @@ def checkpoint(job_id: uuid.UUID, token: uuid.UUID, stage: str,
 def complete_job(job_id: uuid.UUID, token: uuid.UUID) -> bool:
     with SessionLocal() as db:
         changed = db.execute(update(ResearchJob).where(*owned_job(job_id, token),
-            ResearchJob.current_stage == "VERIFYING").values(updated_at=now())).rowcount
+            ResearchJob.current_stage == "SAVING").values(updated_at=now())).rowcount
         if not changed:
             db.rollback()
             return False
         job = db.get(ResearchJob, job_id)
-        result = verify_report(job.plan, job.evidence or [], job.draft, db)
-        job.result = result
+        if job.verified_result is None:
+            raise ResearchError("Research verification checkpoint is missing.")
+        ensure_live_sources(job.evidence or [], db)
+        job.result = job.verified_result
         # The finished report retains only the exact cited quotes, not full chunks.
         job.evidence = None
         job.draft = None
+        job.verified_result = None
         job.status = "completed"
         job.current_stage = "COMPLETED"
         job.error = None
         job.completed_at = now()
         job.lease_token = None
         job.lease_expires_at = None
+        step = db.get(ResearchJobStep, (job_id, "SAVING"))
+        step.status = "completed"
+        step.output = {"published": True}
+        step.completed_at = now()
+        # Completed reports retain only quoted evidence, not source chunks.
+        for stage in ("RETRIEVING", "SYNTHESIZING", "VERIFYING"):
+            saved = db.get(ResearchJobStep, (job_id, stage))
+            if saved is not None:
+                saved.input = None
+                saved.output = None
         db.execute(delete(ResearchDispatch).where(ResearchDispatch.job_id == job_id))
         db.commit()
         return True
@@ -107,8 +149,9 @@ def process_research_job(job_id: str, dispatch_id: str) -> None:
                 return
     thread = Thread(target=heartbeat, daemon=True)
     thread.start()
+    stage = "PLANNING"
     try:
-        for _ in range(4):
+        for _ in range(5):
             if lost.is_set():
                 return
             with SessionLocal() as db:
@@ -116,19 +159,38 @@ def process_research_job(job_id: str, dispatch_id: str) -> None:
                 if job is None or job.status != "running" or job.lease_token != token:
                     return
                 stage, query, workspace_id = job.current_stage, job.query, job.workspace_id
-                method, plan, evidence = job.retrieval_method, job.plan, job.evidence
+                method, plan, evidence, draft = job.retrieval_method, job.plan, job.evidence, job.draft
             if stage == "PLANNING":
+                if not begin_step(job_id, token, stage, {"query": query}):
+                    return
                 if not checkpoint(job_id, token, stage, "RETRIEVING", plan_questions(query)):
                     return
             elif stage == "RETRIEVING":
+                if not begin_step(job_id, token, stage, plan or {}):
+                    return
                 if not checkpoint(job_id, token, stage, "SYNTHESIZING",
                                   retrieve_evidence(plan, workspace_id, method)):
                     return
             elif stage == "SYNTHESIZING":
+                if not begin_step(job_id, token, stage, {"plan": plan, "evidence": evidence or []}):
+                    return
                 if not checkpoint(job_id, token, stage, "VERIFYING",
                                   draft_report(query, plan, evidence or [])):
                     return
             elif stage == "VERIFYING":
+                if not begin_step(job_id, token, stage, {"plan": plan, "evidence": evidence or [],
+                                                         "draft": draft}):
+                    return
+                with SessionLocal() as db:
+                    verified = verify_report(plan, evidence or [], draft, db)
+                if not checkpoint(job_id, token, stage, "SAVING", verified):
+                    return
+            elif stage == "SAVING":
+                with SessionLocal() as db:
+                    verified_result = db.scalar(select(ResearchJob.verified_result).where(
+                        ResearchJob.id == job_id))
+                if not begin_step(job_id, token, stage, {"verified_result": verified_result}):
+                    return
                 complete_job(job_id, token)
                 return
             else:
@@ -136,7 +198,7 @@ def process_research_job(job_id: str, dispatch_id: str) -> None:
     except Exception as exc:
         transient = isinstance(exc, (ResearchTransientError, OperationalError,
                                      DisconnectionError, DatabaseTimeoutError))
-        retry = transient and attempt_count < max_attempts
+        retry = transient and attempt_count < min(max_attempts, 2 if isinstance(exc, ResearchInvalidJSON) else max_attempts)
         logger.warning("Research job %s on attempt %s/%s (%s)",
                        "retry scheduled" if retry else "failed", attempt_count,
                        max_attempts, type(exc).__name__)
@@ -151,6 +213,10 @@ def process_research_job(job_id: str, dispatch_id: str) -> None:
                 completed_at=None if retry else now(),
                 lease_token=None, lease_expires_at=None)).rowcount
             if changed:
+                step = db.get(ResearchJobStep, (job_id, stage))
+                if step is not None and step.status != "completed":
+                    step.status = "failed"
+                    step.error = "Temporary failure; retry scheduled." if retry else "Stage failed."
                 if retry:
                     scheduled = db.execute(update(ResearchDispatch).where(
                         ResearchDispatch.job_id == job_id).values(
@@ -160,7 +226,10 @@ def process_research_job(job_id: str, dispatch_id: str) -> None:
                         raise RuntimeError("Missing durable research dispatch for retry")
                 else:
                     db.execute(update(ResearchJob).where(ResearchJob.id == job_id).values(
-                        evidence=None, draft=None))
+                        evidence=None, draft=None, verified_result=None))
+                    db.execute(update(ResearchJobStep).where(ResearchJobStep.job_id == job_id,
+                        ResearchJobStep.stage.in_(["RETRIEVING", "SYNTHESIZING", "VERIFYING", "SAVING"])
+                    ).values(input=None, output=None))
                     db.execute(delete(ResearchDispatch).where(ResearchDispatch.job_id == job_id))
             db.commit()
     finally:

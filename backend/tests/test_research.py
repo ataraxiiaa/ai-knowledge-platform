@@ -4,11 +4,12 @@ from datetime import timedelta
 
 import pytest
 from sqlalchemy import func, select, update
+from sqlalchemy.exc import OperationalError
 
 from app import dispatcher
 from app.core.config import settings
 from app.models.chunks import Chunk
-from app.models.research import ResearchDispatch, ResearchJob, ResearchJobSource
+from app.models.research import ResearchDispatch, ResearchJob, ResearchJobSource, ResearchJobStep
 from app.schemas.documents import SearchResult
 from app.services import research, research_logic
 from conftest import TestingSessionLocal
@@ -262,3 +263,142 @@ def test_comparison_plan_has_comparative_question(monkeypatch):
     plan = research_logic.plan_questions("Compare caching and quantization for memory use.")
     assert len(plan["questions"]) == 3
     assert "compare" in plan["questions"][-1].lower()
+
+
+def due_retry(db_session, monkeypatch):
+    past = research.now() - timedelta(seconds=1)
+    db_session.execute(update(ResearchJob).values(next_retry_at=past))
+    db_session.execute(update(ResearchDispatch).values(due_at=past))
+    db_session.commit()
+    class Queue:
+        def enqueue(self, *args, **kwargs):
+            return None
+    monkeypatch.setattr(dispatcher, "research_queue", Queue)
+    assert dispatcher.dispatch_research_once() == 1
+
+
+def test_verify_and_save_are_separate_checkpoints(research_client, db_session, monkeypatch):
+    headers, workspace, document, chunk = ready_document(research_client, db_session)
+    fake_operations(monkeypatch, chunk, document)
+    response = create_job(research_client, headers, workspace)
+    job_id = response.json()["id"]
+    dispatch_id = str(db_session.scalar(select(ResearchDispatch.id)))
+    original_save = research.complete_job
+    calls = {"plan": 0, "retrieve": 0, "draft": 0, "verify": 0, "save": 0}
+    for name, key in (("plan_questions", "plan"), ("retrieve_evidence", "retrieve"),
+                      ("draft_report", "draft"), ("verify_report", "verify")):
+        original = getattr(research, name)
+        def counted(*args, _original=original, _key=key, **kwargs):
+            calls[_key] += 1
+            return _original(*args, **kwargs)
+        monkeypatch.setattr(research, name, counted)
+    def fail_save_once(*args):
+        calls["save"] += 1
+        if calls["save"] == 1:
+            raise OperationalError("save", {}, Exception("database unavailable"))
+        return original_save(*args)
+    monkeypatch.setattr(research, "complete_job", fail_save_once)
+    research.process_research_job(job_id, dispatch_id)
+    db_session.expire_all()
+    job = db_session.scalar(select(ResearchJob))
+    assert job.status == "retrying" and job.current_stage == "SAVING"
+    assert job.verified_result and job.result is None
+    assert [step.status for step in db_session.scalars(select(ResearchJobStep).order_by(ResearchJobStep.stage))] == [
+        "completed", "completed", "failed", "completed", "completed"]
+    due_retry(db_session, monkeypatch)
+    research.process_research_job(job_id, dispatch_id)
+    db_session.expire_all()
+    assert db_session.scalar(select(ResearchJob)).status == "completed"
+    assert calls == {"plan": 1, "retrieve": 1, "draft": 1, "verify": 1, "save": 2}
+    assert db_session.get(ResearchJobStep, (uuid.UUID(job_id), "SAVING")).attempt_count == 2
+
+
+@pytest.mark.parametrize("failure", ["timeout", "embedding", "invalid_json"])
+def test_research_faults_resume_saved_stage(research_client, db_session, monkeypatch, failure):
+    headers, workspace, document, chunk = ready_document(research_client, db_session)
+    fake_operations(monkeypatch, chunk, document)
+    response = create_job(research_client, headers, workspace)
+    job_id = response.json()["id"]
+    dispatch_id = str(db_session.scalar(select(ResearchDispatch.id)))
+    calls = 0
+    if failure == "embedding":
+        original = research_logic.retrieve_passages
+        def faulty(*args):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                raise OSError("embedding model unavailable")
+            return original(*args)
+        monkeypatch.setattr(research_logic, "retrieve_passages", faulty)
+        stage = "RETRIEVING"
+    else:
+        original = research_logic.complete_json
+        def faulty(system, payload, max_tokens):
+            nonlocal calls
+            if system == research_logic.DRAFT_PROMPT:
+                calls += 1
+                if calls == 1:
+                    if failure == "timeout":
+                        raise research_logic.ResearchTransientError("provider timeout")
+                    return "{bad json"
+            return original(system, payload, max_tokens)
+        monkeypatch.setattr(research_logic, "complete_json", faulty)
+        stage = "SYNTHESIZING"
+    research.process_research_job(job_id, dispatch_id)
+    db_session.expire_all()
+    job = db_session.scalar(select(ResearchJob))
+    assert job.status == "retrying" and job.current_stage == stage
+    assert db_session.get(ResearchJobStep, (uuid.UUID(job_id), "PLANNING")).status == "completed"
+    due_retry(db_session, monkeypatch)
+    research.process_research_job(job_id, dispatch_id)
+    db_session.expire_all()
+    assert db_session.scalar(select(ResearchJob)).status == "completed"
+    assert calls == (4 if failure == "embedding" else 2)
+
+
+def test_repeated_invalid_json_stops_after_one_retry(research_client, db_session, monkeypatch):
+    headers, workspace, document, chunk = ready_document(research_client, db_session)
+    fake_operations(monkeypatch, chunk, document)
+    original = research_logic.complete_json
+    def malformed(system, payload, max_tokens):
+        if system == research_logic.DRAFT_PROMPT:
+            return "{invalid"
+        return original(system, payload, max_tokens)
+    monkeypatch.setattr(research_logic, "complete_json", malformed)
+    response = create_job(research_client, headers, workspace)
+    job_id = response.json()["id"]
+    dispatch_id = str(db_session.scalar(select(ResearchDispatch.id)))
+    research.process_research_job(job_id, dispatch_id)
+    due_retry(db_session, monkeypatch)
+    research.process_research_job(job_id, dispatch_id)
+    db_session.expire_all()
+    job = db_session.scalar(select(ResearchJob))
+    assert job.status == "failed" and job.attempt_count == 2
+    assert job.current_stage == "SYNTHESIZING" and job.result is None
+    assert db_session.get(ResearchJobStep, (uuid.UUID(job_id), "PLANNING")).status == "completed"
+    assert db_session.scalar(select(func.count()).select_from(ResearchDispatch)) == 0
+
+
+def test_crashed_worker_resumes_from_last_checkpoint(research_client, db_session, monkeypatch):
+    headers, workspace, document, chunk = ready_document(research_client, db_session)
+    fake_operations(monkeypatch, chunk, document)
+    response = create_job(research_client, headers, workspace)
+    job_id = response.json()["id"]
+    dispatch_id = str(db_session.scalar(select(ResearchDispatch.id)))
+    original = research.draft_report
+    def crash(*args):
+        raise KeyboardInterrupt()
+    monkeypatch.setattr(research, "draft_report", crash)
+    with pytest.raises(KeyboardInterrupt):
+        research.process_research_job(job_id, dispatch_id)
+    db_session.execute(update(ResearchJob).values(lease_expires_at=research.now() - timedelta(seconds=1)))
+    db_session.commit()
+    assert dispatcher.recover_expired_research() == 1
+    db_session.expire_all()
+    assert db_session.scalar(select(ResearchJob)).current_stage == "SYNTHESIZING"
+    assert db_session.get(ResearchJobStep, (uuid.UUID(job_id), "SYNTHESIZING")).status == "failed"
+    monkeypatch.setattr(research, "draft_report", original)
+    due_retry(db_session, monkeypatch)
+    research.process_research_job(job_id, dispatch_id)
+    db_session.expire_all()
+    assert db_session.scalar(select(ResearchJob)).status == "completed"

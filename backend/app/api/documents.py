@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models.chunks import Chunk
 from app.models.documents import Document, IngestionDispatch
-from app.models.research import ResearchDispatch, ResearchJob, ResearchJobSource
+from app.models.research import ResearchDispatch, ResearchJob, ResearchJobSource, ResearchJobStep
 from app.services.ingestion import now
 from app.models.users import User
 from app.models.workspaces import Workspace
@@ -110,8 +110,13 @@ def delete_document(document_id: uuid.UUID, workspace: Workspace = Depends(owned
         db.execute(update(ResearchJob).where(ResearchJob.id.in_(affected)).values(
             status="failed", error="A source document was deleted during research.",
             lease_token=None, lease_expires_at=None, next_retry_at=None,
-            evidence=None, draft=None,
+            evidence=None, draft=None, verified_result=None,
             completed_at=now(), updated_at=now()))
+        db.execute(update(ResearchJobStep).where(ResearchJobStep.job_id.in_(affected)).values(
+            input=None, output=None))
+        db.execute(update(ResearchJobStep).where(
+            ResearchJobStep.job_id.in_(affected), ResearchJobStep.status == "running"
+        ).values(status="failed", error="Source document deleted."))
         db.execute(delete(ResearchDispatch).where(ResearchDispatch.job_id.in_(affected)))
     db.delete(document)
     db.commit()

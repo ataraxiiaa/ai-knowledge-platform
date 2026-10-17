@@ -27,6 +27,7 @@ def get_readiness(db: Session = Depends(get_db)):
         db.execute(text("SELECT id FROM research_jobs LIMIT 0"))
         db.execute(text("SELECT id FROM research_dispatches LIMIT 0"))
         db.execute(text("SELECT job_id FROM research_job_sources LIMIT 0"))
+        db.execute(text("SELECT job_id FROM research_job_steps LIMIT 0"))
     except SQLAlchemyError:
         raise HTTPException(status_code=503, detail="Database is not ready") from None
     return HealthResponse(status="healthy")

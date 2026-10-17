@@ -20,6 +20,7 @@ class ResearchJob(Base):
     plan: Mapped[dict | None] = mapped_column(JSON)
     evidence: Mapped[list | None] = mapped_column(JSON)
     draft: Mapped[dict | None] = mapped_column(JSON)
+    verified_result: Mapped[dict | None] = mapped_column(JSON)
     result: Mapped[dict | None] = mapped_column(JSON)
     error: Mapped[str | None] = mapped_column(Text)
     attempt_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
@@ -32,6 +33,22 @@ class ResearchJob(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     dispatches: Mapped[list["ResearchDispatch"]] = relationship(cascade="all, delete-orphan")
     sources: Mapped[list["ResearchJobSource"]] = relationship(cascade="all, delete-orphan")
+    steps: Mapped[list["ResearchJobStep"]] = relationship(cascade="all, delete-orphan")
+
+
+class ResearchJobStep(Base):
+    __tablename__ = "research_job_steps"
+
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("research_jobs.id", ondelete="CASCADE"), primary_key=True)
+    stage: Mapped[str] = mapped_column(String(32), primary_key=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    input: Mapped[dict | list | None] = mapped_column(JSON)
+    output: Mapped[dict | list | None] = mapped_column(JSON)
+    attempt_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error: Mapped[str | None] = mapped_column(Text)
 
 
 class ResearchDispatch(Base):

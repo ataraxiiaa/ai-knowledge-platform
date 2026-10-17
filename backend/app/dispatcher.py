@@ -8,7 +8,7 @@ import time
 from sqlalchemy import and_, delete, or_, select, update
 from app.db.session import SessionLocal
 from app.models.documents import Document, IngestionDispatch
-from app.models.research import ResearchDispatch, ResearchJob
+from app.models.research import ResearchDispatch, ResearchJob, ResearchJobStep
 from app.services.ingestion import now, retry_delay_seconds
 from app.services.queue import ingestion_queue, research_queue
 
@@ -82,10 +82,19 @@ def recover_expired_research() -> int:
                 job.error = "Research was interrupted. Please try again."
                 job.next_retry_at = None
                 job.completed_at = now()
+                job.evidence = None
+                job.draft = None
+                job.verified_result = None
+                db.execute(update(ResearchJobStep).where(
+                    ResearchJobStep.job_id == job.id).values(input=None, output=None))
                 db.execute(delete(ResearchDispatch).where(ResearchDispatch.job_id == job.id))
             job.lease_token = None
             job.lease_expires_at = None
             job.updated_at = now()
+            step = db.get(ResearchJobStep, (job.id, job.current_stage))
+            if step is not None and step.status == "running":
+                step.status = "failed"
+                step.error = "Worker interrupted; retry scheduled." if job.status == "retrying" else "Worker interrupted."
             db.commit()
             recovered += 1
             logger.warning("Recovered expired research lease for %s", job.id)

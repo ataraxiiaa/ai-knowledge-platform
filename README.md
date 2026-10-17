@@ -469,7 +469,7 @@ Research jobs turn one workspace question into two to four planned subquestions,
 retrieve up to five passages per question from ready documents, draft bounded
 claims, and verify exact evidence quotes before publishing a report. The
 application controls the stages `PLANNING`, `RETRIEVING`, `SYNTHESIZING`,
-`VERIFYING`, and `COMPLETED`; the LLM performs the plan and draft operations.
+`VERIFYING`, `SAVING`, and `COMPLETED`; the LLM performs the plan and draft operations.
 This is one deterministic workflow, not a collection of agent personalities.
 
 Start a job and poll the URL returned in `Location`:
@@ -492,3 +492,19 @@ Deleting a source during an active job fails that job; deleting its workspace
 removes all reports. Verification checks source identity and exact quote presence,
 but cannot establish that a quote semantically supports a claim. Review reports
 accordingly. [Architecture and validation details](docs/PHASE7_RESEARCH_JOBS.md).
+
+## Phase 8: checkpoints and recovery
+
+Each research stage now has a `research_job_steps` record with status, input,
+output, attempt count, timing, and a safe error summary. `VERIFYING` saves a
+checked report, while `SAVING` publishes it in a separate transaction. If SAVE
+fails or its worker crashes, the retry starts at SAVE without rerunning the LLM.
+Completed reports discard full retrieved chunks and draft snapshots; step status
+and attempt history remain visible in job detail and on the research page.
+
+Transient provider, embedding/retrieval, and database errors use bounded retries
+with exponential delays. Invalid JSON gets one retry. Expired worker leases are
+recovered by the dispatcher; a duplicate delivery cannot claim a completed job.
+An interrupted stage may execute again if its output was not committed, so
+external operations must tolerate at-least-once execution. See
+[checkpoint and fault testing details](docs/PHASE8_CHECKPOINTING.md).
