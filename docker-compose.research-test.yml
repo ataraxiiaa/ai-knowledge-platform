@@ -1,0 +1,97 @@
+# Disposable Phase 7 integration project. No host ports or production volumes.
+x-test-env: &test-env
+  SECRET_KEY: research-test-only-not-for-deployment-0123456789
+  DATABASE_URL: postgresql+psycopg://postgres:test-only@db:5432/research_test
+  REDIS_URL: redis://redis:6379/0
+  UPLOAD_DIR: /data/uploads
+  EMBEDDING_CACHE_DIR: /data/models
+  HF_HUB_OFFLINE: "1"
+  PHASE7_TEST_MODE: "1"
+  LLM_BASE_URL: http://provider:8089/v1
+  LLM_MODEL: research-test-provider
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_PASSWORD: test-only
+      POSTGRES_DB: research_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d research_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: redis:7.4-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+  migrate:
+    image: knowledge-phase7-check
+    environment: *test-env
+    command: ["alembic", "upgrade", "head"]
+    healthcheck:
+      disable: true
+    depends_on:
+      db:
+        condition: service_healthy
+  provider:
+    image: knowledge-phase7-check
+    environment: *test-env
+    command: ["python", "scripts/research_fake_provider.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8089/health', timeout=3)"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+  worker:
+    extends:
+      file: docker-compose.yml
+      service: worker
+    image: knowledge-phase7-check
+    environment: *test-env
+    volumes:
+      - ingestion_data:/data
+      - ./backend/.cache/embeddings:/data/models:ro
+  research_worker:
+    extends:
+      file: docker-compose.yml
+      service: research_worker
+    image: knowledge-phase7-check
+    environment:
+      <<: *test-env
+      RQ_QUEUE_NAME: research
+      RESEARCH_QUEUE_NAME: research
+    volumes:
+      - ingestion_data:/data
+      - ./backend/.cache/embeddings:/data/models:ro
+    depends_on:
+      provider:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+  dispatcher:
+    extends:
+      file: docker-compose.yml
+      service: dispatcher
+    image: knowledge-phase7-check
+    environment: *test-env
+  probe:
+    image: knowledge-phase7-check
+    environment: *test-env
+    volumes:
+      - ingestion_data:/data
+      - ./backend/.cache/embeddings:/data/models:ro
+    entrypoint: ["python", "scripts/verify_research.py"]
+    depends_on:
+      worker:
+        condition: service_started
+      research_worker:
+        condition: service_started
+      dispatcher:
+        condition: service_started
+volumes:
+  ingestion_data:

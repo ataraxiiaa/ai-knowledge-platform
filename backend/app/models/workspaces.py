@@ -9,6 +9,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.documents import Document
+    from app.models.research import ResearchJob
     from app.models.users import User
 
 
@@ -49,4 +50,7 @@ class Workspace(Base):
         "Document",
         back_populates="workspace",
         cascade="all, delete-orphan",
+    )
+    research_jobs: Mapped[List["ResearchJob"]] = relationship(
+        "ResearchJob", cascade="all, delete-orphan",
     )

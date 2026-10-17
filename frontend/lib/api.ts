@@ -1,4 +1,4 @@
-import { ChatResponse, Document, SearchResult, TokenResponse, User, Workspace } from "@/types";
+import { ChatResponse, Document, ResearchJobDetail, ResearchJobSummary, SearchResult, TokenResponse, User, Workspace } from "@/types";
 
 export const AUTH_EXPIRED_EVENT = "auth:expired";
 
@@ -151,5 +151,16 @@ export const documentsApi = {
   search: (workspaceId: string, query: string, topK: number, method: "vector" | "bm25" | "hybrid" | "hybrid_reranked" = "vector"): Promise<SearchResult[]> =>
     apiFetch(`/workspaces/${workspaceId}/search`, {
       method: "POST", body: JSON.stringify({ query, top_k: topK, method }),
+    }),
+};
+
+export const researchApi = {
+  list: (workspaceId: string, signal?: AbortSignal): Promise<ResearchJobSummary[]> =>
+    apiFetch(`/workspaces/${workspaceId}/research-jobs`, { signal }),
+  get: (workspaceId: string, jobId: string, signal?: AbortSignal): Promise<ResearchJobDetail> =>
+    apiFetch(`/workspaces/${workspaceId}/research-jobs/${jobId}`, { signal }),
+  create: (workspaceId: string, query: string): Promise<ResearchJobDetail> =>
+    apiFetch(`/workspaces/${workspaceId}/research-jobs`, {
+      method: "POST", body: JSON.stringify({ query }),
     }),
 };

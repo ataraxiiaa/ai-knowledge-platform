@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     RQ_QUEUE_NAME: str = Field(default="ingestion", pattern=r"^[a-zA-Z0-9_-]{1,64}$")
     RQ_JOB_TIMEOUT: int = Field(default=900, ge=1, le=3600)
     INGESTION_MAX_ATTEMPTS: int = Field(default=3, ge=1, le=5)
+    RESEARCH_QUEUE_NAME: str = Field(default="research", pattern=r"^[a-zA-Z0-9_-]{1,64}$")
+    RESEARCH_JOB_TIMEOUT: int = Field(default=3600, ge=60, le=7200)
+    RESEARCH_MAX_ATTEMPTS: int = Field(default=3, ge=1, le=5)
     DATABASE_URL: str = f"sqlite:///{DEFAULT_SQLITE_PATH}"
     SECRET_KEY: str = Field(min_length=32, repr=False)
     ALGORITHM: str = "HS256"

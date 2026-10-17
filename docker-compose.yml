@@ -49,6 +49,12 @@ services:
       RQ_QUEUE_NAME: ${RQ_QUEUE_NAME:-ingestion}
       RQ_JOB_TIMEOUT: ${RQ_JOB_TIMEOUT:-900}
       INGESTION_MAX_ATTEMPTS: ${INGESTION_MAX_ATTEMPTS:-3}
+      RESEARCH_MAX_ATTEMPTS: ${RESEARCH_MAX_ATTEMPTS:-3}
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://localhost:11434/v1}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-60}
+      RAG_RETRIEVAL_METHOD: ${RAG_RETRIEVAL_METHOD:-vector}
     volumes:
       - ingestion_data:/data
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
@@ -86,6 +92,42 @@ services:
       retries: 3
     stop_grace_period: 16m
 
+  research_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["python", "-m", "app.worker"]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/knowledge_platform
+      SECRET_KEY: ${SECRET_KEY:?Set a generated SECRET_KEY in the root .env file}
+      REDIS_URL: redis://redis:6379/0
+      RQ_QUEUE_NAME: ${RESEARCH_QUEUE_NAME:-research}
+      RESEARCH_QUEUE_NAME: ${RESEARCH_QUEUE_NAME:-research}
+      RESEARCH_JOB_TIMEOUT: ${RESEARCH_JOB_TIMEOUT:-3600}
+      UPLOAD_DIR: /data/uploads
+      EMBEDDING_CACHE_DIR: /data/models
+      EMBEDDING_THREADS: ${EMBEDDING_THREADS:-2}
+      RERANK_CACHE_DIR: /data/rerankers
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://localhost:11434/v1}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-60}
+    volumes:
+      - ingestion_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.worker", "--healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    stop_grace_period: 65m
+
   migrate:
     build:
       context: ./backend
@@ -112,6 +154,8 @@ services:
       REDIS_URL: redis://redis:6379/0
       RQ_QUEUE_NAME: ${RQ_QUEUE_NAME:-ingestion}
       RQ_JOB_TIMEOUT: ${RQ_JOB_TIMEOUT:-900}
+      RESEARCH_QUEUE_NAME: ${RESEARCH_QUEUE_NAME:-research}
+      RESEARCH_JOB_TIMEOUT: ${RESEARCH_JOB_TIMEOUT:-3600}
     depends_on:
       migrate:
         condition: service_completed_successfully

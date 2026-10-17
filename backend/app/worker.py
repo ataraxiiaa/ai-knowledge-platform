@@ -7,11 +7,13 @@ import socket
 from rq import Worker
 from rq.serializers import JSONSerializer
 
-from app.services.queue import ingestion_queue, redis_connection
+from app.services.queue import ingestion_queue, research_queue, redis_connection
+from app.core.config import settings
 
 
 def worker_name() -> str:
-    return f"ingestion-{socket.gethostname()}"
+    prefix = "research" if settings.RQ_QUEUE_NAME == settings.RESEARCH_QUEUE_NAME else "ingestion"
+    return f"{prefix}-{socket.gethostname()}"
 
 
 def healthy(connection) -> bool:
@@ -35,7 +37,8 @@ def main() -> None:
     if os.name == "nt":
         parser.error("Run the worker in the Linux Docker service; native Windows is not configured.")
     connection.ping()
-    worker = Worker([ingestion_queue(connection)], connection=connection,
+    queue = research_queue(connection) if settings.RQ_QUEUE_NAME == settings.RESEARCH_QUEUE_NAME else ingestion_queue(connection)
+    worker = Worker([queue], connection=connection,
                     serializer=JSONSerializer, name=worker_name(), worker_ttl=90)
     worker.work(burst=args.burst)
 

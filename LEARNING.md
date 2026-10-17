@@ -562,3 +562,18 @@ partial chunks. These timings are one local sample, not a latency benchmark.
 
 The [step 7 review](docs/PHASE6_STEP7_REVIEW.md) includes commands, validation,
 and the boundary between tested citation mechanics and untested LLM quality.
+
+## Phase 7: orchestrate research as durable stages
+
+A research job uses one deterministic state machine. Planning and drafting are
+bounded structured LLM calls; retrieval, stage transitions, retries, and citation
+checks are application code. Each completed stage saves its output, so a worker
+that dies during synthesis resumes from synthesis rather than repeating planning
+and retrieval. PostgreSQL stores the authoritative job state and dispatch intent;
+Redis/RQ only delivers work. A separate research worker prevents reports from
+blocking document ingestion.
+
+The report's references point to server-owned document, page, chunk, and exact
+quote metadata. That verifies provenance and quote presence, not whether the
+quote truly supports the claim. Gaps remain visible where a planned question has
+no supported claim. See the [research job design and probe](docs/PHASE7_RESEARCH_JOBS.md).

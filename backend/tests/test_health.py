@@ -39,6 +39,14 @@ def test_readiness_database_failure(client, monkeypatch, db_session):
     assert response.json() == {"detail": "Database is not ready"}
 
 
+def test_readiness_requires_research_schema(client, db_session):
+    from sqlalchemy import text
+
+    db_session.execute(text("DROP TABLE research_job_sources"))
+    db_session.commit()
+    assert client.get("/ready").status_code == 503
+
+
 def test_cors_rejects_unknown_origin(client):
     response = client.options("/health", headers={
         "Origin": "https://untrusted.example",

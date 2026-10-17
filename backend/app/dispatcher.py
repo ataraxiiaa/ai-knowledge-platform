@@ -8,8 +8,9 @@ import time
 from sqlalchemy import and_, delete, or_, select, update
 from app.db.session import SessionLocal
 from app.models.documents import Document, IngestionDispatch
+from app.models.research import ResearchDispatch, ResearchJob
 from app.services.ingestion import now, retry_delay_seconds
-from app.services.queue import ingestion_queue
+from app.services.queue import ingestion_queue, research_queue
 
 logger = logging.getLogger(__name__)
 HEARTBEAT = Path("/tmp/ingestion-dispatcher-heartbeat")
@@ -56,6 +57,41 @@ def recover_expired_leases() -> int:
     return recovered
 
 
+def recover_expired_research() -> int:
+    recovered = 0
+    for _ in range(20):
+        with SessionLocal() as db:
+            job = db.scalar(select(ResearchJob).where(
+                ResearchJob.status == "running", ResearchJob.lease_expires_at <= now(),
+            ).order_by(ResearchJob.lease_expires_at).with_for_update(skip_locked=True).limit(1))
+            if job is None:
+                break
+            if job.attempt_count < job.max_attempts:
+                retry_at = now() + timedelta(seconds=retry_delay_seconds(job.attempt_count))
+                scheduled = db.execute(update(ResearchDispatch).where(
+                    ResearchDispatch.job_id == job.id).values(
+                    due_at=retry_at, published_at=None)).rowcount
+                if scheduled != 1:
+                    db.rollback()
+                    raise RuntimeError(f"Missing durable dispatch for research job {job.id}")
+                job.status = "retrying"
+                job.error = "Research was interrupted. Retrying automatically."
+                job.next_retry_at = retry_at
+            else:
+                job.status = "failed"
+                job.error = "Research was interrupted. Please try again."
+                job.next_retry_at = None
+                job.completed_at = now()
+                db.execute(delete(ResearchDispatch).where(ResearchDispatch.job_id == job.id))
+            job.lease_token = None
+            job.lease_expires_at = None
+            job.updated_at = now()
+            db.commit()
+            recovered += 1
+            logger.warning("Recovered expired research lease for %s", job.id)
+    return recovered
+
+
 def dispatch_once() -> int:
     published = 0
     # One short transaction per record. Multiple dispatchers skip locked records.
@@ -98,6 +134,46 @@ def dispatch_once() -> int:
     return published
 
 
+def dispatch_research_once() -> int:
+    published = 0
+    for _ in range(20):
+        with SessionLocal() as db:
+            dispatch = db.scalar(select(ResearchDispatch).join(ResearchJob).where(
+                or_(ResearchJob.status == "queued", and_(
+                    ResearchJob.status == "retrying",
+                    ResearchJob.next_retry_at <= now(),
+                    ResearchJob.attempt_count < ResearchJob.max_attempts,
+                )), ResearchDispatch.due_at <= now(),
+            ).order_by(ResearchDispatch.due_at).with_for_update(
+                skip_locked=True, of=ResearchDispatch).limit(1))
+            if dispatch is None:
+                break
+            changed = db.execute(update(ResearchJob).where(
+                ResearchJob.id == dispatch.job_id,
+                ResearchJob.status == "retrying",
+                ResearchJob.next_retry_at <= now(),
+                ResearchJob.attempt_count < ResearchJob.max_attempts,
+            ).values(status="queued", next_retry_at=None, updated_at=now())).rowcount
+            if not changed and db.scalar(select(ResearchJob.status).where(
+                    ResearchJob.id == dispatch.job_id)) != "queued":
+                db.rollback()
+                continue
+            dispatch.publish_attempts += 1
+            dispatch.due_at = now() + timedelta(seconds=60)
+            try:
+                research_queue().enqueue("app.services.research.process_research_job",
+                    str(dispatch.job_id), str(dispatch.id), result_ttl=300,
+                    failure_ttl=86400, ttl=120)
+                dispatch.published_at = now()
+                published += 1
+            except Exception as exc:
+                logger.warning("Research dispatch unavailable (%s)", type(exc).__name__)
+                db.commit()
+                break
+            db.commit()
+    return published
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--once", action="store_true")
@@ -111,8 +187,10 @@ def main():
         try:
             if args.once or time.monotonic() - last_recovery >= RECOVERY_SCAN_SECONDS:
                 recover_expired_leases()
+                recover_expired_research()
                 last_recovery = time.monotonic()
             dispatch_once()
+            dispatch_research_once()
             HEARTBEAT.touch()
         except Exception as exc:
             logger.warning("Dispatcher database unavailable (%s)", type(exc).__name__)

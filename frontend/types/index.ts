@@ -68,3 +68,44 @@ export interface ChatResponse {
   retrieved_chunks: SearchResult[];
   status: "answered" | "insufficient_evidence";
 }
+
+export type ResearchStage = "PLANNING" | "RETRIEVING" | "SYNTHESIZING" | "VERIFYING" | "COMPLETED";
+export type ResearchStatus = "queued" | "running" | "retrying" | "completed" | "failed";
+
+export interface ResearchJobSummary {
+  id: string;
+  workspace_id: string;
+  query: string;
+  status: ResearchStatus;
+  current_stage: ResearchStage;
+  retrieval_method: string;
+  error: string | null;
+  attempt_count: number;
+  max_attempts: number;
+  next_retry_at: string | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
+export interface ResearchEvidence {
+  source_id: number;
+  chunk_id: string;
+  document_id: string;
+  filename: string;
+  page: number;
+  content: string;
+  question_indices: number[];
+}
+
+export interface ResearchReport {
+  sections: { question: string; claims: { text: string; citation_ids: number[] }[] }[];
+  sources: ChatSource[];
+  gaps: string[];
+}
+
+export interface ResearchJobDetail extends ResearchJobSummary {
+  plan: { questions: string[] } | null;
+  evidence: ResearchEvidence[] | null;
+  result: ResearchReport | null;
+}

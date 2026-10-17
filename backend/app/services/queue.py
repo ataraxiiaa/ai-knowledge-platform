@@ -14,3 +14,9 @@ def redis_connection() -> Redis:
 def ingestion_queue(connection: Redis | None = None) -> Queue:
     return Queue(settings.RQ_QUEUE_NAME, connection=connection if connection is not None else redis_connection(),
                  serializer=JSONSerializer, default_timeout=settings.RQ_JOB_TIMEOUT)
+
+
+def research_queue(connection: Redis | None = None) -> Queue:
+    return Queue(settings.RESEARCH_QUEUE_NAME,
+                 connection=connection if connection is not None else redis_connection(),
+                 serializer=JSONSerializer, default_timeout=settings.RESEARCH_JOB_TIMEOUT)

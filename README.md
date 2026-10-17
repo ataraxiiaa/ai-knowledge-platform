@@ -4,7 +4,8 @@ A FastAPI and Next.js foundation for a workspace-based knowledge platform.
 Authentication and workspace creation/listing/retrieval/deletion are implemented.
 Phase 3 adds PDF ingestion, local CPU embeddings, pgvector storage, and semantic
 passage search. Phase 4 adds evidence-backed RAG chat with a configurable LLM.
-Research notes remain a preview. This is not yet production-ready.
+Research jobs now produce cited reports from indexed workspace documents. This is
+not yet production-ready.
 
 ## Structure
 
@@ -85,7 +86,7 @@ Set the generated `SECRET_KEY` in the root `.env`, then run:
 docker compose up --build
 ```
 
-Compose starts PostgreSQL, Redis, the API, an RQ worker, and the dispatcher;
+Compose starts PostgreSQL, Redis, the API, ingestion and research RQ workers, and the dispatcher;
 it applies migrations before the processing services start. Check their status
 and logs with `docker compose ps` and `docker compose logs -f worker dispatcher`.
 Existing database volumes require the baseline procedure above first. The frontend
@@ -110,6 +111,9 @@ PostgreSQL port is bound to `127.0.0.1`; use appropriate credentials for deploym
 | DELETE | `/workspaces/{id}/documents/{document_id}` | Remove document, chunks, and source PDF |
 | POST | `/workspaces/{id}/search` | Return top-k passages using vector (default), BM25, or hybrid retrieval |
 | POST | `/workspaces/{id}/chat` | Generate an answer with validated source quotations |
+| POST | `/workspaces/{id}/research-jobs` | Accept a staged research request with 202 |
+| GET | `/workspaces/{id}/research-jobs` | List the latest 50 workspace jobs |
+| GET | `/workspaces/{id}/research-jobs/{job_id}` | Read stage, evidence, and completed report |
 
 Workspace endpoints require `Authorization: Bearer <token>`. API docs are at
 `/docs` and `/redoc`. Workspace updates are not implemented.
@@ -458,3 +462,33 @@ It uses a deterministic local OpenAI-compatible provider to verify the citation
 contract, so it does not measure language-model answer quality. The test Compose
 file has no host ports or production volumes; `down -v` removes only the named
 disposable project.
+
+## Phase 7: research jobs
+
+Research jobs turn one workspace question into two to four planned subquestions,
+retrieve up to five passages per question from ready documents, draft bounded
+claims, and verify exact evidence quotes before publishing a report. The
+application controls the stages `PLANNING`, `RETRIEVING`, `SYNTHESIZING`,
+`VERIFYING`, and `COMPLETED`; the LLM performs the plan and draft operations.
+This is one deterministic workflow, not a collection of agent personalities.
+
+Start a job and poll the URL returned in `Location`:
+
+```sh
+curl -X POST "$API_URL/workspaces/$WORKSPACE_ID/research-jobs" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"query":"Compare the approaches in these papers for reducing LLM inference memory usage."}'
+```
+
+Set `LLM_MODEL` and a `LLM_BASE_URL` reachable **from the research worker
+container**. The research queue is separate from ingestion; the dispatcher
+publishes both queues from durable database intents. Jobs retry transient provider
+or retrieval failures up to three attempts and resume from the last saved stage.
+`docker compose ps research_worker dispatcher` and
+`docker compose logs -f research_worker dispatcher` help diagnose processing.
+
+Reports retain exact cited quotes when a source document is later deleted.
+Deleting a source during an active job fails that job; deleting its workspace
+removes all reports. Verification checks source identity and exact quote presence,
+but cannot establish that a quote semantically supports a claim. Review reports
+accordingly. [Architecture and validation details](docs/PHASE7_RESEARCH_JOBS.md).

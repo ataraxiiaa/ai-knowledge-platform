@@ -2,7 +2,7 @@ import logging
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -10,6 +10,8 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models.chunks import Chunk
 from app.models.documents import Document, IngestionDispatch
+from app.models.research import ResearchDispatch, ResearchJob, ResearchJobSource
+from app.services.ingestion import now
 from app.models.users import User
 from app.models.workspaces import Workspace
 from app.schemas.documents import DocumentResponse, SearchRequest, SearchResult
@@ -99,6 +101,18 @@ def delete_document(document_id: uuid.UUID, workspace: Workspace = Depends(owned
     document = db.scalar(select(Document).where(Document.id == document_id, Document.workspace_id == workspace.id))
     if document is None:
         raise HTTPException(404, "Document not found")
+    affected = db.scalars(select(ResearchJobSource.job_id).join(
+        ResearchJob, ResearchJob.id == ResearchJobSource.job_id).where(
+        ResearchJobSource.document_id == document_id,
+        ResearchJob.workspace_id == workspace.id,
+        ResearchJob.status.in_(["queued", "running", "retrying"]))).all()
+    if affected:
+        db.execute(update(ResearchJob).where(ResearchJob.id.in_(affected)).values(
+            status="failed", error="A source document was deleted during research.",
+            lease_token=None, lease_expires_at=None, next_retry_at=None,
+            evidence=None, draft=None,
+            completed_at=now(), updated_at=now()))
+        db.execute(delete(ResearchDispatch).where(ResearchDispatch.job_id.in_(affected)))
     db.delete(document)
     db.commit()
     try:
