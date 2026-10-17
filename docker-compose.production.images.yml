@@ -1,0 +1,17 @@
+# Used only by the CI deployment script; all application images share one tested SHA tag.
+x-backend-image: &backend-image
+  image: ghcr.io/${GHCR_REPOSITORY:?Set GHCR_REPOSITORY}-backend:${IMAGE_TAG:?Set IMAGE_TAG}
+  pull_policy: always
+
+services:
+  backend: *backend-image
+  worker: *backend-image
+  research_worker: *backend-image
+  dispatcher: *backend-image
+  migrate: *backend-image
+  frontend:
+    image: ghcr.io/${GHCR_REPOSITORY}-frontend:${IMAGE_TAG:?Set IMAGE_TAG}
+    pull_policy: always
+  backup:
+    image: ghcr.io/${GHCR_REPOSITORY}-backup:${IMAGE_TAG:?Set IMAGE_TAG}
+    pull_policy: always

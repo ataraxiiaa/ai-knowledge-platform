@@ -553,3 +553,7 @@ NVIDIA GPU and VRAM metrics. See [Phase 11 setup and signal details](docs/PHASE1
 # Production deployment
 
 Phase 12 adds an isolated HTTPS Docker Compose deployment with Caddy, persistent PostgreSQL/Redis, S3-compatible PDF storage, offsite database backups, health checks, secret files, and bounded service logs. Follow [the production runbook](docs/PHASE12_PRODUCTION.md) before deploying to a Linux host. No cloud resources or domain are provisioned by this repository.
+
+## CI/CD
+
+Phase 13 adds pull-request quality/security gates, a disposable PostgreSQL/worker integration test, SHA-tagged GHCR images, and a manual production deployment with migration, backup, health verification, and image rollback. See [the CI/CD setup and merge-protection guide](docs/PHASE13_CICD.md). GitHub environment secrets, branch protection, and the VPS must be configured before deployment.

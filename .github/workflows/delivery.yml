@@ -1,0 +1,199 @@
+name: Delivery
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: delivery-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend:
+    name: Backend quality and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked
+        working-directory: backend
+      - run: uv run --locked ruff check app scripts/backup_postgres.py --select E4,E7,E9,F
+        working-directory: backend
+      - run: uv run --locked mypy --follow-imports=skip --ignore-missing-imports app/production_entrypoint.py app/services/storage.py scripts/backup_postgres.py
+        working-directory: backend
+      - run: uv run --locked pytest -q
+        working-directory: backend
+
+  frontend:
+    name: Frontend quality and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run lint
+        working-directory: frontend
+      - run: npx tsc --noEmit
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+
+  security:
+    name: Dependency security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v10
+      - run: uv sync --locked
+        working-directory: backend
+      - run: uv run --locked pip-audit --requirement requirements.txt --no-deps --disable-pip
+        working-directory: backend
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: npm audit --omit=dev --audit-level=high
+        working-directory: frontend
+
+  integration:
+    name: PostgreSQL and worker integration
+    needs: [backend, frontend, security]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SECRET_KEY: ci-integration-only-generated-not-used-in-production-12345
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked
+        working-directory: backend
+      - name: Prewarm the real embedding model
+        run: uv run --locked python -m app.services.embeddings
+        working-directory: backend
+        env:
+          EMBEDDING_CACHE_DIR: .cache/embeddings
+      - name: Build disposable integration image
+        run: docker build -t knowledge-phase6-step3-check backend
+      - name: Start disposable services
+        run: docker compose -p phase13-ci -f docker-compose.ingestion-test.yml up -d db redis migrate worker dispatcher
+      - name: Verify ingestion, retrieval, and cited chat
+        run: docker compose -p phase13-ci -f docker-compose.ingestion-test.yml run --rm --no-deps --entrypoint python probe scripts/verify_end_to_end.py
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose -p phase13-ci -f docker-compose.ingestion-test.yml logs --tail=150
+      - name: Remove disposable data
+        if: always()
+        run: docker compose -p phase13-ci -f docker-compose.ingestion-test.yml down -v --remove-orphans
+
+  images:
+    name: Docker image (${{ matrix.service }})
+    needs: [integration]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: backend
+            context: ./backend
+            dockerfile: ./backend/Dockerfile.production
+          - service: frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile
+          - service: backup
+            context: ./backend
+            dockerfile: ./backend/Dockerfile.backup
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v3
+      - name: Set immutable image name
+        id: image
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY,,}-${{ matrix.service }}:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@v3
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          tags: ${{ steps.image.outputs.name }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+  deploy:
+    name: Production deployment
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: [images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+      - name: Upload reviewed deployment files
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          tar -czf /tmp/phase13-deploy.tar.gz docker-compose.production.yml docker-compose.production.images.yml deploy/Caddyfile deploy/redis-start.sh deploy/deploy-release.sh
+          scp -o BatchMode=yes /tmp/phase13-deploy.tar.gz "$DEPLOY_USER@$DEPLOY_HOST:~/phase13-deploy.tar.gz"
+      - name: Deploy, migrate, and verify HTTPS readiness
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          repository="${GITHUB_REPOSITORY,,}"
+          ssh -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" \
+            "DEPLOY_PATH='$DEPLOY_PATH' IMAGE_TAG='sha-$GITHUB_SHA' GHCR_REPOSITORY='$repository' sh -s" <<'REMOTE'
+          set -eu
+          : "${DEPLOY_PATH:?Set DEPLOY_PATH in the production environment}"
+          cd "$DEPLOY_PATH"
+          tar -xzf "$HOME/phase13-deploy.tar.gz"
+          rm "$HOME/phase13-deploy.tar.gz"
+          sh deploy/deploy-release.sh
+          REMOTE

@@ -1,6 +1,7 @@
 .venv
 .env
 .env.production
+.deployed-image-tag
 deploy/secrets/
 .uv-cache/
 __pycache__
