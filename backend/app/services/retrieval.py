@@ -12,7 +12,7 @@ from app.core.config import settings
 from app.services.bm25 import BM25Index, tokenize
 from app.services.hybrid import reciprocal_rank_fusion
 from app.schemas.documents import SearchResult
-from app.services.embeddings import embed_texts
+from app.services.model_gateway import embed as embed_texts
 from app.services.text import IngestionError
 
 logger = logging.getLogger(__name__)

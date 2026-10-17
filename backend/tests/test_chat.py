@@ -2,6 +2,7 @@ import json
 import uuid
 
 import httpx
+from app.services import model_gateway
 import pytest
 from fastapi import HTTPException
 
@@ -115,7 +116,7 @@ def test_provider_request_and_prompt_boundary(monkeypatch, passage):
         context = json.loads(payload["messages"][1]["content"])
         assert context["passages"] == [{"source_id": 1, "text": passage.content}]
         return httpx.Response(200, json={"choices": [{"finish_reason": "stop", "message": {"content": supported_output()}}]})
-    monkeypatch.setattr(generation.httpx, "Client", lambda **kwargs: original_client(transport=httpx.MockTransport(handle), **kwargs))
+    monkeypatch.setattr(model_gateway.httpx, "Client", lambda **kwargs: original_client(transport=httpx.MockTransport(handle), **kwargs))
     assert generation.generate_answer("Limitations?", [passage]).status == "answered"
 
 
@@ -133,7 +134,7 @@ def test_provider_errors_are_safe(monkeypatch, passage, failure):
         if failure == "invalid_choice":
             return httpx.Response(200, json={"choices": [None]})
         return httpx.Response(200, json={"private": "secret provider detail"})
-    monkeypatch.setattr(generation.httpx, "Client", lambda **kwargs: original_client(transport=httpx.MockTransport(handle), **kwargs))
+    monkeypatch.setattr(model_gateway.httpx, "Client", lambda **kwargs: original_client(transport=httpx.MockTransport(handle), **kwargs))
     with pytest.raises(generation.GenerationError) as error:
         generation.generate_answer("Limitations?", [passage])
     assert "secret" not in str(error.value)

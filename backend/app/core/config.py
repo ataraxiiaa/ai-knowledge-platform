@@ -35,6 +35,19 @@ class Settings(BaseSettings):
     LLM_MODEL: str = ""
     LLM_API_KEY: str = Field(default="", repr=False)
     LLM_TIMEOUT_SECONDS: float = Field(default=60, gt=0, le=300)
+    GEMINI_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta"
+    GEMINI_API_KEY: str = Field(default="", repr=False)
+    CHAT_PROVIDER: Literal["", "openai_compatible", "gemini"] = ""
+    CHAT_MODEL: str = ""
+    RESEARCH_PLAN_PROVIDER: Literal["", "openai_compatible", "gemini"] = ""
+    RESEARCH_PLAN_MODEL: str = ""
+    RESEARCH_DRAFT_PROVIDER: Literal["", "openai_compatible", "gemini"] = ""
+    RESEARCH_DRAFT_MODEL: str = ""
+    MODEL_FALLBACK_PROVIDER: Literal["", "openai_compatible", "gemini"] = ""
+    MODEL_FALLBACK_MODEL: str = ""
+    GATEWAY_MAX_ATTEMPTS: int = Field(default=2, ge=1, le=3)
+    GATEWAY_RETRY_BASE_SECONDS: float = Field(default=0.5, ge=0, le=5)
+    OPENAI_TOKEN_LIMIT_FIELD: Literal["max_tokens", "max_completion_tokens"] = "max_tokens"
     RAG_TOP_K: int = Field(default=5, ge=1, le=20)
     BM25_MAX_CHUNKS: int = Field(default=20000, ge=1)
     HYBRID_CANDIDATES: int = Field(default=20, ge=20, le=200)
@@ -44,14 +57,14 @@ class Settings(BaseSettings):
     HYBRID_RRF_K: int = Field(default=60, ge=1, le=1000)
     RAG_RETRIEVAL_METHOD: Literal["vector", "bm25", "hybrid", "hybrid_reranked"] = "vector"
 
-    @field_validator("LLM_BASE_URL")
+    @field_validator("LLM_BASE_URL", "GEMINI_BASE_URL")
     @classmethod
     def validate_llm_url(cls, value: str) -> str:
         from urllib.parse import urlsplit
 
         url = urlsplit(value)
         if url.scheme not in ("http", "https") or not url.hostname or url.username or url.password or url.query or url.fragment:
-            raise ValueError("LLM_BASE_URL must be an HTTP(S) base URL without credentials, query, or fragment")
+            raise ValueError("Model base URL must be an HTTP(S) base URL without credentials, query, or fragment")
         return value.rstrip("/")
 
     @model_validator(mode="after")

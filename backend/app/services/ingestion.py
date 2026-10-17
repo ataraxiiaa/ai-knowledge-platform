@@ -10,7 +10,8 @@ from sqlalchemy.exc import DisconnectionError, OperationalError, TimeoutError as
 from app.db.session import SessionLocal
 from app.models.chunks import Chunk
 from app.models.documents import Document, IngestionDispatch
-from app.services.embeddings import MODEL_NAME, embed_texts, validate_vectors
+from app.services.embeddings import MODEL_NAME, validate_vectors
+from app.services.model_gateway import embed as embed_texts
 from app.services.storage import document_path
 from app.services.text import IngestionError, chunk_pages, extract_pages
 from app.core.config import settings

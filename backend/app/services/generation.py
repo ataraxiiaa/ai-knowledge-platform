@@ -2,10 +2,9 @@
 import json
 import re
 
-import httpx
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from app.core.config import settings
+from app.services.model_gateway import GenerateRequest, ModelError, generate
 from app.schemas.chat import ChatResponse, ChatSource
 from app.schemas.documents import SearchResult
 
@@ -46,33 +45,15 @@ Use at most 10 concise claims. Never invent source IDs, facts, quotations, or fi
 
 
 def complete(message: str, passages: list[SearchResult]) -> str:
-    if not settings.LLM_MODEL.strip():
-        raise GenerationError("Generation is not configured. Set LLM_MODEL and LLM_BASE_URL on the backend.")
     context = [{"source_id": i, "text": hit.content} for i, hit in enumerate(passages, 1)]
-    headers = {"Authorization": f"Bearer {settings.LLM_API_KEY}"} if settings.LLM_API_KEY else {}
     try:
-        with httpx.Client(timeout=settings.LLM_TIMEOUT_SECONDS, follow_redirects=False) as client:
-            response = client.post(
-                f"{settings.LLM_BASE_URL}/chat/completions", headers=headers,
-                json={"model": settings.LLM_MODEL, "stream": False, "max_tokens": 2000,
-                      "response_format": {"type": "json_object"},
-                      "messages": [{"role": "system", "content": SYSTEM_PROMPT},
-                                   {"role": "user", "content": json.dumps({"question": message, "passages": context})}]},
-            )
-            response.raise_for_status()
-            choice = response.json()["choices"][0]
-            if not isinstance(choice, dict):
-                raise GenerationError("Generation returned an invalid response.")
-            if choice.get("finish_reason") != "stop":
-                raise GenerationError("Generation did not complete. Try a narrower question.")
-            content = choice["message"]["content"]
-            if not isinstance(content, str) or len(content) > 30000:
-                raise GenerationError("Generation returned an invalid answer.")
-            return content
-    except httpx.TimeoutException as exc:
-        raise GenerationError("Generation timed out. Please try again.") from exc
-    except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError) as exc:
-        raise GenerationError("Generation provider unavailable or returned an invalid response.") from exc
+        content = generate("chat", GenerateRequest(SYSTEM_PROMPT,
+            json.dumps({"question": message, "passages": context}), 2000)).text
+    except ModelError as exc:
+        raise GenerationError(str(exc)) from exc
+    if len(content) > 30000:
+        raise GenerationError("Generation returned an invalid answer.")
+    return content
 
 
 def generate_answer(message: str, passages: list[SearchResult]) -> ChatResponse:

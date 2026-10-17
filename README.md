@@ -508,3 +508,21 @@ recovered by the dispatcher; a duplicate delivery cannot claim a completed job.
 An interrupted stage may execute again if its output was not committed, so
 external operations must tolerate at-least-once execution. See
 [checkpoint and fault testing details](docs/PHASE8_CHECKPOINTING.md).
+
+## Phase 9: model gateway
+
+Chat, research planning, research drafting, and embeddings call one model
+gateway. The default route keeps the existing `LLM_BASE_URL`/`LLM_MODEL`
+OpenAI-compatible setup, including Ollama or vLLM servers. Set the task-specific
+`CHAT_*`, `RESEARCH_PLAN_*`, or `RESEARCH_DRAFT_*` provider and model variables to
+route a task to Gemini or another model. Gemini requires `GEMINI_API_KEY` and
+uses `GEMINI_BASE_URL`; keys remain server-side. An explicitly configured
+`MODEL_FALLBACK_PROVIDER` and `MODEL_FALLBACK_MODEL` are used only after transient
+generation failures. No fallback is used for rejected or malformed responses.
+
+The gateway normalizes provider errors and token counts, honors short `Retry-After`
+delays, and offers internal streaming. The public chat endpoint still returns a
+complete citation-checked answer; it does not expose unchecked partial text.
+Embeddings remain on the existing local model. Changing that model requires
+reindexing documents because a matching vector dimension alone does not mean
+matching vector semantics. [Gateway configuration and behavior](docs/PHASE9_MODEL_GATEWAY.md).

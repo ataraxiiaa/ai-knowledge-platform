@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.documents import owned_workspace, require_vector_database
 from app.core.config import settings
+from app.services.model_gateway import configured
 from app.db.session import get_db
 from app.models.documents import Document
 from app.models.research import ResearchDispatch, ResearchJob
@@ -20,7 +21,7 @@ def create_research_job(request: ResearchJobCreate, response: Response,
                         workspace: Workspace = Depends(owned_workspace),
                         db: Session = Depends(get_db),
                         _vector_db: None = Depends(require_vector_database)):
-    if not settings.LLM_MODEL.strip():
+    if not configured("research_plan") or not configured("research_draft"):
         raise HTTPException(503, "Research generation is not configured.")
     ready = db.scalar(select(func.count()).select_from(Document).where(
         Document.workspace_id == workspace.id, Document.status == "ready"))

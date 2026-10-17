@@ -590,3 +590,14 @@ malformed model JSON gets only one replay.
 Fault-injection tests distinguish a failed stage from a failed job and show the
 limit of durable execution: an external call may run twice if the worker crashes
 before committing its output. See [the failure matrix and guarantees](docs/PHASE8_CHECKPOINTING.md).
+
+## Phase 9: a model gateway
+
+The application now specifies a task and a generation request instead of an HTTP
+provider contract. Separate adapters translate that request for OpenAI-compatible
+or Gemini endpoints. Configuration routes chat, planning, and drafting
+independently; embeddings stay pinned to the existing local vector model.
+Normalized usage and errors make provider behavior observable, while bounded
+retry and explicit fallback handle temporary failures. Internal streaming stops
+on incomplete output and never switches providers after emitting a chunk. See
+[the gateway design](docs/PHASE9_MODEL_GATEWAY.md).
