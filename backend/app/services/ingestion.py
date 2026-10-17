@@ -14,7 +14,7 @@ from app.models.documents import Document, IngestionDispatch
 from app.models.workspaces import Workspace
 from app.services.embeddings import MODEL_NAME, validate_vectors
 from app.services.model_gateway import embed as embed_texts
-from app.services.storage import document_path
+from app.services.storage import StorageUnavailable, open_document
 from app.services.text import IngestionError, chunk_pages, extract_pages
 from app.core.config import settings
 from app.services import observability
@@ -34,7 +34,7 @@ def retryable_failure(exc: Exception, stage: str) -> bool:
     """Only transport/model availability and database availability merit replay."""
     if isinstance(exc, IngestionError):
         return False
-    if isinstance(exc, (OperationalError, DisconnectionError, DatabaseTimeoutError)):
+    if isinstance(exc, (OperationalError, DisconnectionError, DatabaseTimeoutError, StorageUnavailable)):
         return True
     return stage == "embedding" and isinstance(
         exc, (OSError, ConnectionError, TimeoutError, httpx.TransportError)
@@ -100,7 +100,8 @@ def process_document(document_id: str, dispatch_id: str) -> None:
     try:
         if version != 1 or model != MODEL_NAME or size is None or overlap is None:
             raise IngestionError("Unsupported saved ingestion configuration. Please upload again.")
-        pages = extract_pages(document_path(workspace_id, document_id))
+        with open_document(workspace_id, document_id) as path:
+            pages = extract_pages(path)
         if lost.is_set() or not touch(document_id, token, status="chunking"):
             return
         stage = "chunking"

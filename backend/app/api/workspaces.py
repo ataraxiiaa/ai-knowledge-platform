@@ -115,6 +115,6 @@ def delete_workspace(
     db.commit()
     try:
         delete_workspace_files(id)
-    except OSError:
+    except Exception:
         logging.getLogger(__name__).exception("Could not remove files for workspace %s", id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

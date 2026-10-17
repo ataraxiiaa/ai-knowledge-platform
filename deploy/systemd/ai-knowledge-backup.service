@@ -1,0 +1,9 @@
+[Unit]
+Description=AI Knowledge Platform offsite PostgreSQL backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ai-knowledge-platform
+ExecStart=/usr/bin/docker compose --env-file .env.production -f docker-compose.production.yml --profile backup run --rm backup

@@ -60,11 +60,11 @@ def upload_document(
     if overlap >= size:
         raise HTTPException(422, "chunk_overlap must be smaller than chunk_size")
     document_id = uuid.uuid4()
-    path = store_pdf(file, workspace.id, document_id)
+    storage_key = store_pdf(file, workspace.id, document_id)
     filename = (file.filename or "document.pdf").replace("\\", "/").rsplit("/", 1)[-1][:255]
     document = Document(
         id=document_id, workspace_id=workspace.id, filename=filename,
-        storage_path=path.relative_to(settings.UPLOAD_DIR.resolve()).as_posix(), status="queued",
+        storage_path=storage_key, status="queued",
         chunk_size=size, chunk_overlap=overlap, pipeline_version=1, embedding_model=MODEL_NAME,
         max_attempts=settings.INGESTION_MAX_ATTEMPTS,
     )
@@ -76,7 +76,10 @@ def upload_document(
         db.commit()
     except Exception:
         db.rollback()
-        path.unlink(missing_ok=True)
+        try:
+            delete_document_file(workspace.id, document_id)
+        except Exception:
+            logger.exception("Could not remove PDF after failed database transaction: %s", document_id)
         raise
     response.headers["Location"] = f"/workspaces/{workspace.id}/documents/{document_id}"
     return accepted
@@ -125,7 +128,7 @@ def delete_document(document_id: uuid.UUID, workspace: Workspace = Depends(owned
     db.commit()
     try:
         delete_document_file(workspace.id, document_id)
-    except OSError:
+    except Exception:
         logger.exception("Could not remove stored PDF %s", document_id)
     return Response(status_code=204)
 

@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60 * 24, gt=0)
     CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
     UPLOAD_DIR: Path = BACKEND_DIR / "storage"
+    STORAGE_BACKEND: Literal["local", "s3"] = "local"
+    S3_BUCKET: str = ""
+    S3_REGION: str = "us-east-1"
+    S3_ENDPOINT_URL: str = ""
     EMBEDDING_CACHE_DIR: Path = BACKEND_DIR / ".cache" / "embeddings"
     EMBEDDING_THREADS: int = Field(default=2, ge=1, le=16)
     MAX_UPLOAD_BYTES: int = Field(default=10 * 1024 * 1024, ge=1024)
@@ -77,6 +81,8 @@ class Settings(BaseSettings):
     def validate_chunking(self):
         if self.CHUNK_OVERLAP >= self.CHUNK_SIZE:
             raise ValueError("CHUNK_OVERLAP must be less than CHUNK_SIZE")
+        if self.STORAGE_BACKEND == "s3" and not self.S3_BUCKET:
+            raise ValueError("S3_BUCKET is required when STORAGE_BACKEND=s3")
         return self
 
     @field_validator("SECRET_KEY")

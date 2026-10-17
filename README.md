@@ -549,3 +549,7 @@ Prometheus is at `http://localhost:9090`. Configure a unique
 `GRAFANA_ADMIN_PASSWORD` in `.env` before starting the stack. Container CPU and
 memory come from cAdvisor. Enable the optional `gpu` Compose profile to collect
 NVIDIA GPU and VRAM metrics. See [Phase 11 setup and signal details](docs/PHASE11_OBSERVABILITY.md).
+
+# Production deployment
+
+Phase 12 adds an isolated HTTPS Docker Compose deployment with Caddy, persistent PostgreSQL/Redis, S3-compatible PDF storage, offsite database backups, health checks, secret files, and bounded service logs. Follow [the production runbook](docs/PHASE12_PRODUCTION.md) before deploying to a Linux host. No cloud resources or domain are provisioned by this repository.

@@ -1,0 +1,317 @@
+x-app-environment: &app-environment
+  DB_HOST: db
+  DB_USER: knowledge
+  DB_NAME: knowledge_platform
+  DB_PASSWORD_FILE: /run/secrets/db_password
+  REDIS_PASSWORD_FILE: /run/secrets/redis_password
+  SECRET_KEY_FILE: /run/secrets/secret_key
+  STORAGE_BACKEND: s3
+  S3_BUCKET: ${S3_BUCKET:?Set S3_BUCKET}
+  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-}
+  AWS_ACCESS_KEY_ID_FILE: /run/secrets/aws_access_key_id
+  AWS_SECRET_ACCESS_KEY_FILE: /run/secrets/aws_secret_access_key
+  LLM_API_KEY_FILE: /run/secrets/llm_api_key
+  GEMINI_API_KEY_FILE: /run/secrets/gemini_api_key
+  CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN}
+  EMBEDDING_CACHE_DIR: /data/models
+  RERANK_CACHE_DIR: /data/rerankers
+  CACHE_ENABLED: ${CACHE_ENABLED:-true}
+  LLM_BASE_URL: ${LLM_BASE_URL:-http://ollama:11434/v1}
+  LLM_MODEL: ${LLM_MODEL:-}
+  CHAT_PROVIDER: ${CHAT_PROVIDER:-}
+  CHAT_MODEL: ${CHAT_MODEL:-}
+  RESEARCH_PLAN_PROVIDER: ${RESEARCH_PLAN_PROVIDER:-}
+  RESEARCH_PLAN_MODEL: ${RESEARCH_PLAN_MODEL:-}
+  RESEARCH_DRAFT_PROVIDER: ${RESEARCH_DRAFT_PROVIDER:-}
+  RESEARCH_DRAFT_MODEL: ${RESEARCH_DRAFT_MODEL:-}
+  RAG_RETRIEVAL_METHOD: ${RAG_RETRIEVAL_METHOD:-hybrid_reranked}
+  OTEL_ENABLED: ${OTEL_ENABLED:-false}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
+  OTEL_ENVIRONMENT: production
+
+x-app-secrets: &app-secrets
+  - db_password
+  - redis_password
+  - secret_key
+  - aws_access_key_id
+  - aws_secret_access_key
+  - llm_api_key
+  - gemini_api_key
+
+x-app-volumes: &app-volumes
+  - model_cache:/data/models
+  - reranker_cache:/data/rerankers
+
+x-app-build: &app-build
+  context: ./backend
+  dockerfile: Dockerfile.production
+
+x-app-logging: &app-logging
+  driver: local
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    logging: *app-logging
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: /api
+    restart: unless-stopped
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    logging: *app-logging
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+  backend:
+    build: *app-build
+    restart: unless-stopped
+    environment: *app-environment
+    secrets: *app-secrets
+    volumes: *app-volumes
+    expose:
+      - "8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8000/ready"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+    logging: *app-logging
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  worker:
+    build: *app-build
+    restart: unless-stopped
+    command: ["python", "-m", "app.worker"]
+    environment:
+      <<: *app-environment
+      RQ_QUEUE_NAME: ingestion
+    secrets: *app-secrets
+    volumes: *app-volumes
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.production_entrypoint", "python", "-m", "app.worker", "--healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    stop_grace_period: 16m
+    logging: *app-logging
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  research_worker:
+    build: *app-build
+    restart: unless-stopped
+    command: ["python", "-m", "app.worker"]
+    environment:
+      <<: *app-environment
+      RQ_QUEUE_NAME: research
+      RESEARCH_QUEUE_NAME: research
+    secrets: *app-secrets
+    volumes: *app-volumes
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.production_entrypoint", "python", "-m", "app.worker", "--healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    stop_grace_period: 65m
+    logging: *app-logging
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+
+  dispatcher:
+    build: *app-build
+    restart: unless-stopped
+    command: ["python", "-m", "app.dispatcher"]
+    environment: *app-environment
+    secrets: *app-secrets
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.production_entrypoint", "python", "-m", "app.dispatcher", "--healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    logging: *app-logging
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  migrate:
+    build: *app-build
+    command: ["alembic", "upgrade", "head"]
+    environment: *app-environment
+    secrets: *app-secrets
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    logging: *app-logging
+
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: knowledge
+      POSTGRES_DB: knowledge_platform
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U knowledge -d knowledge_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: *app-logging
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/etc/redis/redis-start.sh"]
+    secrets:
+      - redis_password
+    volumes:
+      - redis_data:/data
+      - ./deploy/redis-start.sh:/etc/redis/redis-start.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=$$(cat /run/secrets/redis_password) redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: *app-logging
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  ollama:
+    profiles: [local-model]
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    logging: *app-logging
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+
+  backup:
+    profiles: [backup]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backup
+    environment:
+      PGHOST: db
+      PGUSER: knowledge
+      PGDATABASE: knowledge_platform
+      DB_PASSWORD_FILE: /run/secrets/db_password
+      BACKUP_BUCKET: ${BACKUP_BUCKET:?Set BACKUP_BUCKET}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-}
+      AWS_ACCESS_KEY_ID_FILE: /run/secrets/aws_access_key_id
+      AWS_SECRET_ACCESS_KEY_FILE: /run/secrets/aws_secret_access_key
+    secrets:
+      - db_password
+      - aws_access_key_id
+      - aws_secret_access_key
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    logging: *app-logging
+
+secrets:
+  db_password:
+    file: ./deploy/secrets/db_password
+  redis_password:
+    file: ./deploy/secrets/redis_password
+  secret_key:
+    file: ./deploy/secrets/secret_key
+  aws_access_key_id:
+    file: ./deploy/secrets/aws_access_key_id
+  aws_secret_access_key:
+    file: ./deploy/secrets/aws_secret_access_key
+  llm_api_key:
+    file: ./deploy/secrets/llm_api_key
+  gemini_api_key:
+    file: ./deploy/secrets/gemini_api_key
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  redis_data:
+  model_cache:
+  reranker_cache:
+  ollama_data:
