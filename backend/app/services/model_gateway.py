@@ -4,6 +4,8 @@ from collections.abc import Iterator
 import json
 import logging
 import math
+from time import perf_counter
+import uuid
 import time
 from typing import Literal, Protocol
 from urllib.parse import quote
@@ -11,6 +13,7 @@ from urllib.parse import quote
 import httpx
 
 from app.core.config import settings
+from app.services import cache
 
 logger = logging.getLogger(__name__)
 Task = Literal["chat", "research_plan", "research_draft"]
@@ -372,8 +375,35 @@ def stream(task: Task, request: GenerateRequest) -> Iterator[StreamChunk]:
                                    task, provider_name, exc.kind)
 
 
-def embed(texts: list[str]) -> list[list[float]]:
-    return LocalEmbeddingProvider().embed(texts)
+def embed(texts: list[str], workspace_id: uuid.UUID | None = None) -> list[list[float]]:
+    if not texts:
+        return []
+    if workspace_id is None:
+        return LocalEmbeddingProvider().embed(texts)
+    from app.services.embeddings import DIMENSIONS, MODEL_NAME
+    vectors: list[list[float] | None] = [None] * len(texts)
+    missing: dict[str, tuple[str, list[int]]] = {}
+    for index, value in enumerate(texts):
+        cache_key = cache.key("embedding", workspace_id, MODEL_NAME, DIMENSIONS, value)
+        entry = cache.get("embedding", workspace_id, cache_key)
+        vector = entry.get("data") if entry else None
+        if isinstance(vector, list) and len(vector) == DIMENSIONS and all(
+                isinstance(item, (int, float)) and math.isfinite(item) for item in vector):
+            vectors[index] = vector
+        elif cache_key in missing:
+            missing[cache_key][1].append(index)
+        else:
+            missing[cache_key] = (value, [index])
+    if missing:
+        started = perf_counter()
+        computed = LocalEmbeddingProvider().embed([item[0] for item in missing.values()])
+        elapsed_ms = (perf_counter() - started) * 1000 / len(missing)
+        for (cache_key, (_, indices)), vector in zip(missing.items(), computed, strict=True):
+            for index in indices:
+                vectors[index] = vector
+            cache.put("embedding", workspace_id, cache_key, vector,
+                      settings.EMBEDDING_CACHE_TTL_SECONDS, elapsed_ms)
+    return [vector for vector in vectors if vector is not None]
 
 
 def health(task: Task) -> bool:

@@ -10,6 +10,7 @@ from sqlalchemy.exc import DisconnectionError, OperationalError, TimeoutError as
 from app.db.session import SessionLocal
 from app.models.chunks import Chunk
 from app.models.documents import Document, IngestionDispatch
+from app.models.workspaces import Workspace
 from app.services.embeddings import MODEL_NAME, validate_vectors
 from app.services.model_gateway import embed as embed_texts
 from app.services.storage import document_path
@@ -102,7 +103,7 @@ def process_document(document_id: str, dispatch_id: str) -> None:
         if not touch(document_id, token, status="embedding"):
             return
         stage = "embedding"
-        vectors = embed_texts([chunk.content for chunk in chunks])
+        vectors = embed_texts([chunk.content for chunk in chunks], workspace_id)
         validate_vectors(vectors, len(chunks))
         if lost.is_set():
             return
@@ -124,6 +125,8 @@ def process_document(document_id: str, dispatch_id: str) -> None:
                     "cleaning_version": version, "parser": "pypdf",
                 }) for chunk, vector in zip(chunks, vectors, strict=True)])
             db.execute(delete(IngestionDispatch).where(IngestionDispatch.document_id == document_id))
+            db.execute(update(Workspace).where(Workspace.id == workspace_id).values(
+                corpus_revision=Workspace.corpus_revision + 1))
             db.commit()
     except Exception as exc:
         retry = retryable_failure(exc, stage) and attempt_count < max_attempts

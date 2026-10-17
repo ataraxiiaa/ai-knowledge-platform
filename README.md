@@ -526,3 +526,15 @@ complete citation-checked answer; it does not expose unchecked partial text.
 Embeddings remain on the existing local model. Changing that model requires
 reindexing documents because a matching vector dimension alone does not mean
 matching vector semantics. [Gateway configuration and behavior](docs/PHASE9_MODEL_GATEWAY.md).
+
+## Phase 10: caching and cost measurement
+
+Redis caches workspace-scoped local embeddings, retrieval results, and validated
+chat model output. Retrieval and chat keys include a durable workspace corpus
+revision, incremented when a document becomes searchable or is deleted. Cache
+failures fall back to normal processing. An owner can inspect current UTC-day
+hits, misses, estimated latency and token savings at
+`GET /workspaces/{id}/cache-metrics`. API cost savings are estimated only when
+`CACHE_MODEL_PRICES_JSON` provides rates for the actual provider and model.
+Research drafts and incomplete model streams are not cached. See
+[cache design, invalidation, and benchmark](docs/PHASE10_CACHING.md).

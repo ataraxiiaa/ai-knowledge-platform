@@ -601,3 +601,13 @@ Normalized usage and errors make provider behavior observable, while bounded
 retry and explicit fallback handle temporary failures. Internal streaming stops
 on incomplete output and never switches providers after emitting a chunk. See
 [the gateway design](docs/PHASE9_MODEL_GATEWAY.md).
+
+## Phase 10: cache invalidation and measured savings
+
+Caching saves repeated work only when a key represents every input that could
+change the result. Workspace corpus revisions make retrieval and chat cache
+entries obsolete as soon as indexed documents are published or deleted. Short
+TTLs bound unused data, while Redis outages leave the normal path available.
+The owner-only metrics distinguish measured hits and provider tokens avoided
+from estimated latency and API cost savings. See
+[the cache design and benchmark](docs/PHASE10_CACHING.md).

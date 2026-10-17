@@ -119,6 +119,9 @@ def delete_document(document_id: uuid.UUID, workspace: Workspace = Depends(owned
         ).values(status="failed", error="Source document deleted."))
         db.execute(delete(ResearchDispatch).where(ResearchDispatch.job_id.in_(affected)))
     db.delete(document)
+    db.flush()
+    db.execute(update(Workspace).where(Workspace.id == workspace.id).values(
+        corpus_revision=Workspace.corpus_revision + 1))
     db.commit()
     try:
         delete_document_file(workspace.id, document_id)

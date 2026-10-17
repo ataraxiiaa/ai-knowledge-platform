@@ -6,6 +6,7 @@ from app.api.health import router as health_router
 from app.api.workspaces import router as workspaces_router
 from app.api.chat import router as chat_router
 from app.api.research import router as research_router
+from app.api.cache_metrics import router as cache_metrics_router
 
 api_router = APIRouter()
 
@@ -15,5 +16,6 @@ api_router.include_router(workspaces_router)
 api_router.include_router(documents_router)
 api_router.include_router(chat_router)
 api_router.include_router(research_router)
+api_router.include_router(cache_metrics_router)
 
 __all__ = ["api_router"]

@@ -78,7 +78,7 @@ def test_delete_before_execution_is_noop(ingestion_client, db_session):
 
 def test_delete_during_embedding_cannot_recreate_document(ingestion_client, db_session, monkeypatch):
     headers, response = accept(ingestion_client)
-    def embed(texts):
+    def embed(texts, workspace_id):
         assert ingestion_client.delete(response.headers["location"], headers=headers).status_code == 204
         return [[1.] + [0.] * 383 for _ in texts]
     monkeypatch.setattr(ingestion, "embed_texts", embed)
@@ -90,7 +90,7 @@ def test_delete_during_embedding_cannot_recreate_document(ingestion_client, db_s
 
 def test_superseded_worker_cannot_publish(ingestion_client, db_session, monkeypatch):
     headers, response = accept(ingestion_client)
-    def embed(texts):
+    def embed(texts, workspace_id):
         with TestingSessionLocal() as db:
             db.execute(update(Document).values(lease_token=uuid.uuid4()))
             db.commit()
@@ -113,7 +113,7 @@ def test_transient_model_failure_waits_then_succeeds_once(ingestion_client, db_s
     document_id = response.json()["id"]
     dispatch_id = str(db_session.scalar(select(IngestionDispatch.id)))
     calls = 0
-    def sometimes_fails(texts):
+    def sometimes_fails(texts, workspace_id):
         nonlocal calls
         calls += 1
         if calls == 1:
@@ -156,7 +156,7 @@ def test_second_retry_delay_then_exhausted(ingestion_client, db_session, monkeyp
     _, response = accept(ingestion_client)
     document_id = response.json()["id"]
     dispatch_id = str(db_session.scalar(select(IngestionDispatch.id)))
-    def unavailable(texts):
+    def unavailable(texts, workspace_id):
         raise OSError("model unavailable")
     monkeypatch.setattr(ingestion, "embed_texts", unavailable)
     monkeypatch.setattr(dispatcher, "SessionLocal", TestingSessionLocal)
@@ -218,7 +218,7 @@ def test_unknown_error_and_bad_pdf_are_permanent(ingestion_client, db_session, m
     _, response = accept(ingestion_client)
     document_id = response.json()["id"]
     dispatch_id = str(db_session.scalar(select(IngestionDispatch.id)))
-    def unknown(texts):
+    def unknown(texts, workspace_id):
         raise RuntimeError("private details")
     monkeypatch.setattr(ingestion, "embed_texts", unknown)
     ingestion.process_document(document_id, dispatch_id)

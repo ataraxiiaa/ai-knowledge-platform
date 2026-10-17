@@ -116,7 +116,7 @@ def test_chat_uses_configured_hybrid_context(client, monkeypatch):
     passages = reciprocal_rank_fusion([hit(1)], [hit(1)])
     monkeypatch.setattr(chat_api, "retrieve_hybrid", lambda *args: passages)
     monkeypatch.setattr(chat_api, "retrieve_passages", lambda *args: pytest.fail("Wrong retriever"))
-    def generate(question, context):
+    def generate(question, context, *args):
         assert context == passages
         return ChatResponse(answer="Insufficient evidence", sources=[], retrieved_chunks=context,
                             status="insufficient_evidence")

@@ -1,6 +1,8 @@
 """Shared exact dense retrieval for search and RAG."""
 import logging
 import uuid
+from functools import wraps
+from time import perf_counter
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -8,22 +10,63 @@ from sqlalchemy.orm import Session
 
 from app.models.chunks import Chunk
 from app.models.documents import Document
+from app.models.workspaces import Workspace
 from app.core.config import settings
 from app.services.bm25 import BM25Index, tokenize
 from app.services.hybrid import reciprocal_rank_fusion
 from app.schemas.documents import SearchResult
 from app.services.model_gateway import embed as embed_texts
+from app.services import cache
+from app.services.embeddings import MODEL_NAME as EMBEDDING_MODEL_NAME
+from app.services.reranking import MODEL_NAME as RERANK_MODEL_NAME
 from app.services.text import IngestionError
 
 logger = logging.getLogger(__name__)
 
 
+def cached(method: str):
+    """Cache complete retrieval output under a durable corpus revision."""
+    def decorate(function):
+        @wraps(function)
+        def wrapped(query: str, top_k: int, workspace_id: uuid.UUID, db: Session) -> list[SearchResult]:
+            if not query.strip() or db is None:
+                return function(query, top_k, workspace_id, db)
+            revision = db.scalar(select(Workspace.corpus_revision).where(Workspace.id == workspace_id))
+            if revision is None:
+                return function(query, top_k, workspace_id, db)
+            configuration = {"embedding_model": EMBEDDING_MODEL_NAME,
+                "rerank_model": RERANK_MODEL_NAME,
+                "bm25_max": settings.BM25_MAX_CHUNKS,
+                "hybrid_candidates": settings.HYBRID_CANDIDATES,
+                "hybrid_rrf_k": settings.HYBRID_RRF_K,
+                "rerank_candidates": settings.RERANK_CANDIDATES}
+            cache_key = cache.key("retrieval", workspace_id, revision, method,
+                                  query.strip(), top_k, configuration)
+            hit = cache.get("retrieval", workspace_id, cache_key)
+            if hit and isinstance(hit.get("data"), list):
+                try:
+                    return [SearchResult.model_validate(item) for item in hit["data"]]
+                except (ValueError, TypeError):
+                    pass
+            started = perf_counter()
+            results = function(query, top_k, workspace_id, db)
+            cache.put("retrieval", workspace_id, cache_key,
+                      [item.model_dump(mode="json") for item in results],
+                      settings.RETRIEVAL_CACHE_TTL_SECONDS,
+                      (perf_counter() - started) * 1000)
+            return results
+        return wrapped
+    return decorate
+
+
+@cached("hybrid")
 def retrieve_hybrid(query: str, top_k: int, workspace_id: uuid.UUID, db: Session) -> list[SearchResult]:
     dense = retrieve_passages(query, settings.HYBRID_CANDIDATES, workspace_id, db)
     lexical = retrieve_bm25(query, settings.HYBRID_CANDIDATES, workspace_id, db)
     return reciprocal_rank_fusion(dense, lexical, settings.HYBRID_RRF_K)[:top_k]
 
 
+@cached("bm25")
 def retrieve_bm25(query: str, top_k: int, workspace_id: uuid.UUID, db: Session) -> list[SearchResult]:
     if not query.strip():
         raise HTTPException(422, "Query cannot be blank")
@@ -49,12 +92,13 @@ def retrieve_bm25(query: str, top_k: int, workspace_id: uuid.UUID, db: Session) 
                          bm25_score=scores[i], retrieval_method="bm25") for i in order]
 
 
+@cached("vector")
 def retrieve_passages(query: str, top_k: int, workspace_id: uuid.UUID, db: Session) -> list[SearchResult]:
     query = query.strip()
     if not query:
         raise HTTPException(422, "Query cannot be blank")
     try:
-        vector = embed_texts([query])[0]
+        vector = embed_texts([query], workspace_id)[0]
     except IngestionError as exc:
         raise HTTPException(422, str(exc)) from exc
     except Exception as exc:
@@ -74,6 +118,7 @@ def retrieve_passages(query: str, top_k: int, workspace_id: uuid.UUID, db: Sessi
     ) for chunk, filename, dist in rows]
 
 
+@cached("hybrid_reranked")
 def retrieve_reranked(query: str, top_k: int, workspace_id: uuid.UUID, db: Session) -> list[SearchResult]:
     from app.services.reranking import rerank_passages
 

@@ -70,6 +70,28 @@ def main():
             assert response.status_code == 202, response.text
             document, _ = wait(client, response.headers["location"], headers, "ready")
             document_ids.append(document["id"])
+        search_body = {"query": "KV cache compression", "top_k": 2, "method": "vector"}
+        first_search = client.post(f"/workspaces/{workspace}/search", headers=headers,
+                                   json=search_body)
+        second_search = client.post(f"/workspaces/{workspace}/search", headers=headers,
+                                    json=search_body)
+        assert first_search.status_code == second_search.status_code == 200
+        assert first_search.json() == second_search.json()
+        chat_body = {"message": "What memory-saving approach is described?"}
+        first_chat = client.post(f"/workspaces/{workspace}/chat", headers=headers,
+                                 json=chat_body)
+        second_chat = client.post(f"/workspaces/{workspace}/chat", headers=headers,
+                                  json=chat_body)
+        assert first_chat.status_code == second_chat.status_code == 200
+        assert first_chat.json() == second_chat.json()
+        assert first_chat.json()["sources"]
+        cache_metrics = client.get(f"/workspaces/{workspace}/cache-metrics",
+                                   headers=headers).json()
+        assert cache_metrics["available"]
+        assert cache_metrics["layers"]["retrieval"]["hits"] >= 1
+        assert cache_metrics["layers"]["chat"]["hits"] >= 1
+        assert cache_metrics["layers"]["chat"]["input_tokens_saved"] >= 12
+        print("PASS: repeated search and chat hit Redis cache with cited output", flush=True)
         started = time.monotonic()
         response = client.post(f"/workspaces/{workspace}/research-jobs", headers=headers,
             json={"query": "Compare how these papers reduce LLM inference memory usage."})
@@ -109,6 +131,10 @@ def main():
 
         assert client.delete(f"/workspaces/{workspace}/documents/{document_ids[0]}",
                              headers=headers).status_code == 204
+        after_delete = client.post(f"/workspaces/{workspace}/search", headers=headers,
+                                   json=search_body)
+        assert after_delete.status_code == 200
+        assert all(item["document_id"] != document_ids[0] for item in after_delete.json())
         retained = client.get(response.headers["location"], headers=headers).json()
         assert retained["status"] == "completed" and retained["result"] == report["result"]
         with SessionLocal() as db:

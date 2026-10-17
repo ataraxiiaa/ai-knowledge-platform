@@ -11,6 +11,12 @@ DEFAULT_SQLITE_PATH = (BACKEND_DIR / "app.db").as_posix()
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Knowledge Platform"
     REDIS_URL: str = Field(default="redis://127.0.0.1:6379/0", repr=False)
+    CACHE_ENABLED: bool = True
+    EMBEDDING_CACHE_TTL_SECONDS: int = Field(default=86400, ge=60, le=604800)
+    RETRIEVAL_CACHE_TTL_SECONDS: int = Field(default=300, ge=10, le=3600)
+    CHAT_CACHE_TTL_SECONDS: int = Field(default=300, ge=10, le=3600)
+    CACHE_MAX_VALUE_BYTES: int = Field(default=524288, ge=1024, le=2097152)
+    CACHE_MODEL_PRICES_JSON: str = "{}"
     RQ_QUEUE_NAME: str = Field(default="ingestion", pattern=r"^[a-zA-Z0-9_-]{1,64}$")
     RQ_JOB_TIMEOUT: int = Field(default=900, ge=1, le=3600)
     INGESTION_MAX_ATTEMPTS: int = Field(default=3, ge=1, le=5)

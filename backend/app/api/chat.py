@@ -3,6 +3,7 @@ from time import perf_counter
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from app.api.documents import owned_workspace, require_vector_database
 from app.core.config import settings
@@ -36,7 +37,8 @@ def chat(
     logger.info("RAG retrieval: chunks=%d elapsed_ms=%.1f", len(passages), (perf_counter() - started) * 1000)
     started = perf_counter()
     try:
-        result = generate_answer(request.message, passages)
+        revision = db.scalar(select(Workspace.corpus_revision).where(Workspace.id == workspace.id))
+        result = generate_answer(request.message, passages, workspace.id, revision)
     except GenerationError as exc:
         logger.warning("RAG generation failed")
         raise HTTPException(502, str(exc)) from exc

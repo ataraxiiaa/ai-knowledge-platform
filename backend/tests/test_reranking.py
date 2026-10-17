@@ -76,7 +76,7 @@ def test_chat_and_search_reranked_ownership(client, monkeypatch):
     monkeypatch.setattr(settings, "RAG_RETRIEVAL_METHOD", "hybrid_reranked")
     passages = [hit(1, retrieval_method="hybrid_reranked", rerank_status="applied", rerank_score=3.)]
     monkeypatch.setattr(chat_api, "retrieve_reranked", lambda *args: passages)
-    def generate(question, context):
+    def generate(question, context, *args):
         assert context == passages
         return ChatResponse(answer="Insufficient evidence", sources=[], retrieved_chunks=context,
                             status="insufficient_evidence")

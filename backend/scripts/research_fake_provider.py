@@ -27,7 +27,11 @@ class Handler(BaseHTTPRequestHandler):
         size = int(self.headers["Content-Length"])
         request = json.loads(self.rfile.read(size))
         payload = json.loads(request["messages"][1]["content"])
-        if "evidence" not in payload:
+        if "passages" in payload:
+            passage = payload["passages"][0]
+            content = {"claims": [{"text": "The paper describes a memory-saving approach.",
+                "evidence": [{"source_id": passage["source_id"], "quote": passage["text"]}]}]}
+        elif "evidence" not in payload:
             content = {"questions": ["How does KV cache compression reduce memory?",
                                      "How does weight quantization reduce memory?",
                                      "How do cache compression and quantization compare?"]}
@@ -50,7 +54,8 @@ class Handler(BaseHTTPRequestHandler):
             }]})
             content = {"sections": sections}
         body = json.dumps({"choices": [{"finish_reason": "stop", "message": {
-            "content": json.dumps(content)}}]}).encode()
+            "content": json.dumps(content)}}], "usage": {
+            "prompt_tokens": 12, "completion_tokens": 8}}).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))

@@ -43,7 +43,7 @@ def owner(client, email="owner@example.com"):
 @pytest.fixture
 def ingestion_client(client, monkeypatch):
     app.dependency_overrides[require_vector_database] = lambda: None
-    monkeypatch.setattr(ingestion, "embed_texts", lambda texts: [[1.0] + [0.0] * 383 for _ in texts])
+    monkeypatch.setattr(ingestion, "embed_texts", lambda texts, workspace_id: [[1.0] + [0.0] * 383 for _ in texts])
     from conftest import TestingSessionLocal
     monkeypatch.setattr(ingestion, "SessionLocal", TestingSessionLocal)
     yield client
@@ -100,7 +100,7 @@ def test_unreadable_pdf_records_failure(ingestion_client, db_session, data, expe
 
 def test_embedding_failure_does_not_leave_chunks(ingestion_client, monkeypatch, db_session):
     headers, workspace = owner(ingestion_client)
-    def fail(texts):
+    def fail(texts, workspace_id):
         raise RuntimeError("private internal path or provider details")
     monkeypatch.setattr(ingestion, "embed_texts", fail)
     response = ingestion_client.post(f"/workspaces/{workspace}/documents", headers=headers, files={"file": ("input.pdf", pdf_bytes())})
