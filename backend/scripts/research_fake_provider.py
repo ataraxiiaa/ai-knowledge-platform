@@ -1,7 +1,8 @@
 """Deterministic OpenAI-compatible provider for disposable research verification."""
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
+import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 if os.environ.get("PHASE7_TEST_MODE") != "1":
     raise SystemExit("Only run in the disposable research test project")
@@ -24,6 +25,9 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/v1/chat/completions":
             self.send_error(404)
             return
+        delay_ms = int(os.environ.get("PHASE15_FAKE_MODEL_DELAY_MS", "0"))
+        if delay_ms > 0:
+            time.sleep(delay_ms / 1000)
         size = int(self.headers["Content-Length"])
         request = json.loads(self.rfile.read(size))
         payload = json.loads(request["messages"][1]["content"])

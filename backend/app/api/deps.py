@@ -35,4 +35,8 @@ def get_current_user(
     if user is None:
         raise credentials_exception
 
+    # Authentication only reads the user. Do not carry a checked-out connection
+    # into the next sync dependency or route while many requests compete for it.
+    db.expunge(user)
+    db.rollback()
     return user

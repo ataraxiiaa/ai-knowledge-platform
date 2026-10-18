@@ -101,6 +101,7 @@ services:
   backend:
     build: *app-build
     restart: unless-stopped
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "${BACKEND_WORKERS:-1}"]
     environment: *app-environment
     secrets: *app-secrets
     volumes: *app-volumes
@@ -174,6 +175,7 @@ services:
     stop_grace_period: 65m
     logging: *app-logging
     deploy:
+      replicas: ${RESEARCH_WORKER_REPLICAS:-1}
       resources:
         limits:
           memory: 3G

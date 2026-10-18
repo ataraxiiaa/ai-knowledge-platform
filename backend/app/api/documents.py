@@ -27,6 +27,8 @@ def owned_workspace(id: uuid.UUID, db: Session = Depends(get_db), user: User = D
     workspace = db.scalar(select(Workspace).where(Workspace.id == id, Workspace.user_id == user.id))
     if workspace is None:
         raise HTTPException(404, "Workspace not found")
+    db.expunge(workspace)
+    db.rollback()
     return workspace
 
 

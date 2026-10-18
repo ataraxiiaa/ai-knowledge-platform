@@ -19,6 +19,8 @@ If using local Ollama, add `--profile local-model` to `up`, pull the configured 
 
 Inspect status and logs with `docker compose --env-file .env.production -f docker-compose.production.yml ps` and `... logs --tail=100 SERVICE`. Logging uses Docker's rotating local driver. Workers/dispatcher have health checks and restart policies. The one-shot migration runs before application services. Set `OTEL_ENABLED=true` and a reachable collector endpoint when connecting the Phase 11 observability stack; its local stack is not exposed by this production file.
 
+`BACKEND_WORKERS` and `RESEARCH_WORKER_REPLICAS` in `.env.production` default to one each. The first sets Uvicorn processes in the API container; the second sets Compose research worker replicas, including during CI/CD deployments. Increase them only after sizing CPU, RAM, PostgreSQL connections, and model-provider concurrency on the target host. Each API process has its own database pool (up to `DB_POOL_SIZE + DB_MAX_OVERFLOW` connections); research workers and other services need connections too. Use the [Phase 15 load-test runbook](PHASE15_LOAD_TESTING.md) to measure a proposed size, then check `docker compose ... ps`, queue depth, API error rate, and database connections after changing the values. The default remains a small-host configuration.
+
 ## Backups and restore rehearsal
 
 Run a first backup and confirm the printed object key and size verification:

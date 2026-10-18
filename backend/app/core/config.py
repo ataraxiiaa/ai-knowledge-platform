@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     RESEARCH_JOB_TIMEOUT: int = Field(default=3600, ge=60, le=7200)
     RESEARCH_MAX_ATTEMPTS: int = Field(default=3, ge=1, le=5)
     DATABASE_URL: str = f"sqlite:///{DEFAULT_SQLITE_PATH}"
+    DB_POOL_SIZE: int = Field(default=5, ge=1, le=50)
+    DB_MAX_OVERFLOW: int = Field(default=10, ge=0, le=50)
+    DB_POOL_TIMEOUT_SECONDS: float = Field(default=30, gt=0, le=60)
     SECRET_KEY: str = Field(min_length=32, repr=False)
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60 * 24, gt=0)

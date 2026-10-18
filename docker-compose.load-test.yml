@@ -1,0 +1,122 @@
+# Disposable Phase 15 benchmark. Bind every host port to loopback; use -p phase15-load.
+x-app-env: &app-env
+  SECRET_KEY: phase15-disposable-only-secret-key-0123456789
+  DATABASE_URL: postgresql+psycopg://postgres:phase15-only@db:5432/load_test
+  REDIS_URL: redis://redis:6379/0
+  STORAGE_BACKEND: local
+  UPLOAD_DIR: /data/uploads
+  EMBEDDING_CACHE_DIR: /data/models
+  HF_HUB_OFFLINE: "1"
+  LLM_BASE_URL: http://model:8089/v1
+  LLM_MODEL: phase15-fake
+  CHAT_PROVIDER: openai_compatible
+  CHAT_MODEL: phase15-fake
+  RESEARCH_PLAN_PROVIDER: openai_compatible
+  RESEARCH_PLAN_MODEL: phase15-fake
+  RESEARCH_DRAFT_PROVIDER: openai_compatible
+  RESEARCH_DRAFT_MODEL: phase15-fake
+  RAG_RETRIEVAL_METHOD: vector
+  CACHE_ENABLED: "false"
+  OTEL_ENABLED: "false"
+
+x-backend: &backend
+  build:
+    context: ./backend
+    dockerfile: Dockerfile.production
+  environment: *app-env
+  volumes:
+    - load_uploads:/data/uploads
+    - ./backend/.cache/embeddings:/data/models:ro
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_PASSWORD: phase15-only
+      POSTGRES_DB: load_test
+    ports:
+      - "127.0.0.1:15432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d load_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "127.0.0.1:16379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  model:
+    <<: *backend
+    command: ["python", "scripts/research_fake_provider.py"]
+    environment:
+      PHASE7_TEST_MODE: "1"
+      PHASE15_FAKE_MODEL_DELAY_MS: "150"
+
+  migrate:
+    <<: *backend
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  backend:
+    <<: *backend
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+    ports:
+      - "127.0.0.1:18000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      model:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8000/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  worker:
+    <<: *backend
+    command: ["python", "-m", "app.worker"]
+    environment:
+      <<: *app-env
+      RQ_QUEUE_NAME: ingestion
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  research_worker:
+    <<: *backend
+    command: ["python", "-m", "app.worker"]
+    environment:
+      <<: *app-env
+      RQ_QUEUE_NAME: research
+      RESEARCH_QUEUE_NAME: research
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  dispatcher:
+    <<: *backend
+    command: ["python", "-m", "app.dispatcher"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+volumes:
+  load_uploads:

@@ -43,9 +43,12 @@ def create_research_job(request: ResearchJobCreate, response: Response,
 @router.get("/{id}/research-jobs", response_model=list[ResearchJobSummary])
 def list_research_jobs(workspace: Workspace = Depends(owned_workspace),
                        db: Session = Depends(get_db)):
-    return db.scalars(select(ResearchJob).where(
+    jobs = db.scalars(select(ResearchJob).where(
         ResearchJob.workspace_id == workspace.id).order_by(
         ResearchJob.created_at.desc(), ResearchJob.id.desc()).limit(50)).all()
+    result = [ResearchJobSummary.model_validate(job) for job in jobs]
+    db.rollback()
+    return result
 
 
 @router.get("/{id}/research-jobs/{job_id}", response_model=ResearchJobDetail)
@@ -55,4 +58,6 @@ def get_research_job(job_id: uuid.UUID, workspace: Workspace = Depends(owned_wor
         ResearchJob.id == job_id, ResearchJob.workspace_id == workspace.id))
     if job is None:
         raise HTTPException(404, "Research job not found")
-    return job
+    result = ResearchJobDetail.model_validate(job)
+    db.rollback()
+    return result

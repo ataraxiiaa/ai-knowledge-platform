@@ -2,17 +2,16 @@ import json
 import uuid
 
 import httpx
-from app.services import model_gateway
 import pytest
 from fastapi import HTTPException
+from test_ingestion import owner
 
 from app.api import chat as chat_api
 from app.api.documents import require_vector_database
 from app.core.config import settings
 from app.main import app
 from app.schemas.documents import SearchResult
-from app.services import generation
-from test_ingestion import owner
+from app.services import generation, model_gateway
 
 
 @pytest.fixture
@@ -43,6 +42,29 @@ def test_chat_cites_server_metadata_and_returns_actual_context(client, monkeypat
     assert result["sources"][0]["page"] == 7
     assert result["sources"][0]["chunk_id"] == str(passage.chunk_id)
     assert result["retrieved_chunks"][0]["content"] == passage.content
+
+
+def test_chat_releases_read_transaction_before_generation(client, monkeypatch, passage):
+    headers, workspace = owner(client)
+    app.dependency_overrides[require_vector_database] = lambda: None
+    observed = {}
+
+    def retrieve(_message, _top_k, _workspace_id, db):
+        observed["db"] = db
+        assert not db.in_transaction()
+        return [passage]
+
+    def generate(_message, passages, _workspace_id, _revision):
+        assert passages == [passage]
+        assert not observed["db"].in_transaction()
+        return generation.generate_answer("Question?", passages)
+
+    monkeypatch.setattr(chat_api, "retrieve_passages", retrieve)
+    monkeypatch.setattr(chat_api, "generate_answer", generate)
+    monkeypatch.setattr(generation, "complete", lambda *_: supported_output())
+    response = client.post(f"/workspaces/{workspace}/chat", headers=headers,
+                           json={"message": "Question?"})
+    assert response.status_code == 200
 
 
 def test_chat_ownership_prevents_retrieval_and_generation(client, monkeypatch):
