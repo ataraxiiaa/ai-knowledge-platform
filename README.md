@@ -308,6 +308,12 @@ smoke test is not a retrieval or citation-accuracy benchmark.
    existing pre-migration schema, follow the baseline procedure above first.
    A simple single-instance start command is:
    `alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+   On Render's free plan, where Shell is unavailable, set this as the web
+   service's **Start Command** and redeploy. Set the service Root Directory to
+   `backend`; if it is the repository root instead, prefix the command with
+   `cd backend &&`. Watch the deployment logs for Alembic errors. Keep the
+   migration step in the start command for future releases; rerunning an
+   already-applied migration is safe.
 4. Attach persistent storage and set `UPLOAD_DIR` to its uploads subdirectory, such
    as `/var/data/uploads`. Set `EMBEDDING_CACHE_DIR=/var/data/models` on that same disk
    to avoid downloading the model after each restart. Create/cache it at runtime;

@@ -47,6 +47,14 @@ def test_readiness_requires_research_schema(client, db_session):
     assert client.get("/ready").status_code == 503
 
 
+def test_readiness_requires_workspace_corpus_revision(client, db_session):
+    from sqlalchemy import text
+
+    db_session.execute(text("ALTER TABLE workspaces DROP COLUMN corpus_revision"))
+    db_session.commit()
+    assert client.get("/ready").status_code == 503
+
+
 def test_cors_rejects_unknown_origin(client):
     response = client.options("/health", headers={
         "Origin": "https://untrusted.example",

@@ -20,7 +20,7 @@ def get_readiness(db: Session = Depends(get_db)):
     """Check database connectivity and the application schema."""
     try:
         db.execute(text("SELECT id FROM users LIMIT 0"))
-        db.execute(text("SELECT id FROM workspaces LIMIT 0"))
+        db.execute(text("SELECT id, corpus_revision FROM workspaces LIMIT 0"))
         db.execute(text("SELECT id FROM documents LIMIT 0"))
         db.execute(text("SELECT id FROM chunks LIMIT 0"))
         db.execute(text("SELECT id FROM ingestion_dispatches LIMIT 0"))
