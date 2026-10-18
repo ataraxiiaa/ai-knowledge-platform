@@ -170,7 +170,7 @@ export function DocumentsPanel({ workspaceId }: { workspaceId: string }) {
             if (file) void upload(file);
           }} />
         </label>
-        <button onClick={refresh} disabled={busy || loading} className="text-sm text-indigo-600 underline disabled:opacity-50">Refresh list</button>
+        <button onClick={refresh} disabled={busy || loading} className="text-sm text-indigo-700 underline disabled:text-gray-600 disabled:cursor-not-allowed">Refresh list</button>
       </div>
       <p className="text-xs text-gray-500">Overlap: 64 characters. Each upload creates a separate document, so you can compare chunk sizes.</p>
       {uploadingName && <p role="status" className="text-sm text-indigo-600">Uploading {uploadingName}…</p>}
@@ -190,7 +190,7 @@ export function DocumentsPanel({ workspaceId }: { workspaceId: string }) {
                 const complete = document.status === "ready" || (current >= 0 && index < current);
                 const active = stage.status === document.status;
                 return <li key={stage.status} aria-current={active ? "step" : undefined}
-                  className={complete || active || document.status === "ready" ? "font-semibold text-indigo-700" : "text-gray-400"}>
+                  className={complete || active || document.status === "ready" ? "font-semibold text-indigo-700" : "text-gray-600"}>
                   {complete || document.status === "ready" ? "✓ " : active ? "● " : "○ "}{stage.label}
                 </li>;
               })}
@@ -198,7 +198,7 @@ export function DocumentsPanel({ workspaceId }: { workspaceId: string }) {
             <p className="mt-1 text-xs text-gray-500">{document.chunk_count} chunks · Updated {new Date(document.updated_at).toLocaleString()}</p>
             {document.error && <p className="text-sm text-red-700">{document.error}</p>}
           </div>
-          <button disabled={busy} onClick={() => remove(document)} className="text-sm text-red-600 disabled:opacity-50">Delete</button>
+          <button disabled={busy} onClick={() => remove(document)} className="text-sm text-red-700 disabled:text-gray-600 disabled:cursor-not-allowed">Delete</button>
         </li>)}</ul>}
     </section>
 
@@ -216,7 +216,7 @@ export function DocumentsPanel({ workspaceId }: { workspaceId: string }) {
         <input aria-label="Search query" value={query} maxLength={1024} disabled={readyDocumentCount === 0} onChange={(event) => setQuery(event.target.value)} placeholder="What does the document say about…?" className="min-w-48 flex-1 rounded border border-gray-300 p-2 disabled:bg-gray-100" />
         <label className="text-sm">Top-k <select value={topK} onChange={(event) => setTopK(Number(event.target.value))} className="rounded border border-gray-300 p-2">{[1, 3, 5, 10].map((k) => <option key={k}>{k}</option>)}</select></label>
         <label className="text-sm">Method <select value={method} disabled={searching || readyDocumentCount === 0} onChange={(event) => { setMethod(event.target.value as "vector" | "bm25" | "hybrid" | "hybrid_reranked"); setResults(null); }} className="rounded border border-gray-300 p-2 disabled:bg-gray-100"><option value="vector">Vector (meaning)</option><option value="bm25">BM25 (keywords)</option><option value="hybrid">Hybrid (combined)</option><option value="hybrid_reranked">Hybrid + reranker</option></select></label>
-        <button disabled={searching || readyDocumentCount === 0 || !query.trim()} className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">{searching ? "Searching…" : "Search"}</button>
+        <button disabled={searching || readyDocumentCount === 0 || !query.trim()} className="rounded bg-indigo-600 px-4 py-2 text-white disabled:bg-gray-200 disabled:text-gray-700 disabled:cursor-not-allowed">{searching ? "Searching…" : "Search"}</button>
       </form>
       {searchError && <p role="alert" className="text-sm text-red-700">{searchError}</p>}
       {results?.length === 0 && <p className="text-sm text-gray-500">No matching passages found in ready documents.</p>}

@@ -133,7 +133,7 @@ function ResearchConsole() {
               maxLength={1024} rows={3} placeholder="Compare the approaches in these papers for reducing LLM inference memory usage."
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
             <button type="submit" disabled={submitting || !query.trim()}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:bg-gray-200 disabled:text-gray-700 disabled:cursor-not-allowed">
               {submitting ? "Starting..." : "Start research"}
             </button>
           </form>

@@ -94,8 +94,8 @@ export function ChatPanel({ workspaceId }: { workspaceId: string }) {
       <form onSubmit={send} className="flex gap-2 border-t border-gray-200 p-4">
         <input aria-label="Question about your documents" value={input} onChange={(event) => setInput(event.target.value)}
           maxLength={1024} disabled={busy} placeholder="What are the main limitations of the proposed approach?"
-          className="min-w-0 flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm disabled:opacity-60" />
-        <button type="submit" disabled={busy || !input.trim()} className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+          className="min-w-0 flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm disabled:bg-gray-100 disabled:text-gray-600" />
+        <button type="submit" disabled={busy || !input.trim()} className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white disabled:bg-gray-200 disabled:text-gray-700 disabled:cursor-not-allowed">
           <Send className="h-4 w-4" /> Send
         </button>
       </form>

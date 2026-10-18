@@ -115,7 +115,7 @@ function WorkspaceContent() {
                     {workspace.description || "No description provided for this workspace."}
                   </p>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-gray-400">
+                <div className="flex items-center gap-1 text-xs text-gray-600">
                   <Calendar className="h-3.5 w-3.5" />
                   <span>Created {new Date(workspace.created_at).toLocaleDateString()}</span>
                 </div>
@@ -181,7 +181,7 @@ function WorkspaceContent() {
                   </div>
                   <button
                     disabled
-                    className="rounded-lg bg-gray-200 px-4 py-2 text-xs font-semibold text-gray-500 cursor-not-allowed"
+                    className="rounded-lg bg-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 cursor-not-allowed"
                   >
                     Saving unavailable
                   </button>

@@ -212,11 +212,11 @@ export default function DashboardPage() {
                         {workspace.description}
                       </p>
                     ) : (
-                      <p className="mt-0.5 text-xs text-gray-400 italic">
+                      <p className="mt-0.5 text-xs text-gray-600 italic">
                         No description provided
                       </p>
                     )}
-                    <span className="mt-2 inline-block text-xs text-gray-400">
+                    <span className="mt-2 inline-block text-xs text-gray-600">
                       Created {new Date(workspace.created_at).toLocaleDateString()}
                     </span>
                   </div>
@@ -228,7 +228,7 @@ export default function DashboardPage() {
                     title="Delete workspace"
                     onClick={(e) => handleDeleteWorkspace(e, workspace.id)}
                     disabled={deletingId === workspace.id}
-                    className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 transition disabled:opacity-50"
+                    className="rounded-lg p-2 text-gray-600 hover:bg-red-50 hover:text-red-700 transition disabled:text-gray-500 disabled:cursor-not-allowed"
                   >
                     {deletingId === workspace.id ? (
                       <Loader2 className="h-4 w-4 animate-spin text-red-600" />
@@ -236,7 +236,7 @@ export default function DashboardPage() {
                       <Trash2 className="h-4 w-4" />
                     )}
                   </button>
-                  <div className="rounded-lg p-2 text-gray-400 group-hover:translate-x-1 group-hover:text-indigo-600 transition">
+                  <div className="rounded-lg p-2 text-gray-600 group-hover:translate-x-1 group-hover:text-indigo-700 transition">
                     <ArrowRight className="h-4 w-4" />
                   </div>
                 </div>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
+                  className="rounded-lg p-1 text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                     htmlFor="ws-desc"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Description <span className="text-xs text-gray-400">(optional)</span>
+                    Description <span className="text-xs text-gray-600">(optional)</span>
                   </label>
                   <textarea
                     id="ws-desc"
@@ -326,7 +326,7 @@ export default function DashboardPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none disabled:opacity-50 transition"
+                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none disabled:bg-gray-200 disabled:text-gray-700 disabled:cursor-not-allowed transition"
                   >
                     {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                     <span>{isSubmitting ? "Creating..." : "Create"}</span>
