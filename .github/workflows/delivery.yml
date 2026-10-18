@@ -29,9 +29,9 @@ jobs:
           cache-dependency-glob: backend/uv.lock
       - run: uv sync --locked
         working-directory: backend
-      - run: uv run --locked ruff check app scripts/backup_postgres.py --select E4,E7,E9,F
+      - run: uv run --locked ruff check app scripts/backup_postgres.py scripts/evaluate_retrieval.py scripts/score_evaluation_review.py scripts/compare_experiment_runs.py scripts/check_evaluation_gate.py --select E4,E7,E9,F
         working-directory: backend
-      - run: uv run --locked mypy --follow-imports=skip --ignore-missing-imports app/production_entrypoint.py app/services/storage.py scripts/backup_postgres.py
+      - run: uv run --locked mypy --follow-imports=skip --ignore-missing-imports app/production_entrypoint.py app/services/storage.py app/models/experiments.py scripts/backup_postgres.py scripts/compare_experiment_runs.py
         working-directory: backend
       - run: uv run --locked pytest -q
         working-directory: backend
@@ -55,6 +55,51 @@ jobs:
         working-directory: frontend
       - run: npm run build
         working-directory: frontend
+
+  evaluation:
+    name: Frozen retrieval regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SECRET_KEY: ci-evaluation-only-generated-not-used-in-production-12345
+      EMBEDDING_CACHE_DIR: .cache/embeddings
+      CHUNK_SIZE: '1024'
+      CHUNK_OVERLAP: '64'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked
+        working-directory: backend
+      - name: Prewarm embedding model
+        run: uv run --locked python -m app.services.embeddings
+        working-directory: backend
+      - name: Run retrieval strategies on frozen development split
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .test-tmp-ci-evaluation
+          for strategy in vector bm25 hybrid; do
+            HF_HUB_OFFLINE=1 uv run --locked python scripts/evaluate_retrieval.py \
+              --strategy "$strategy" --split dev \
+              --output ".test-tmp-ci-evaluation/$strategy.json"
+          done
+          uv run --locked python scripts/check_evaluation_gate.py \
+            --baseline experiments/evaluation/ci-baseline.json \
+            --reports .test-tmp-ci-evaluation
+        working-directory: backend
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: retrieval-evaluation-${{ github.run_id }}
+          path: backend/.test-tmp-ci-evaluation/*.json
+          if-no-files-found: ignore
 
   security:
     name: Dependency security
@@ -114,7 +159,7 @@ jobs:
 
   images:
     name: Docker image (${{ matrix.service }})
-    needs: [integration]
+    needs: [integration, evaluation]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     permissions:

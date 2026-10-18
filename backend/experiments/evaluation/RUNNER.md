@@ -8,6 +8,13 @@ function, recording each list alongside the fused results. Candidate count and
 rank constant come from `HYBRID_CANDIDATES` and `HYBRID_RRF_K`.
 It does not replace the separate real PostgreSQL integration smoke test.
 
+Phase 14 step 3 keeps the JSON report as the default artifact and adds optional
+terminal database persistence. After applying migration `0007`, set an explicit
+`DATABASE_URL` and pass `--persist` to insert one append-only `experiment_runs`
+row when every question has been processed. Interrupted or incomplete reports
+remain JSON checkpoints and are not inserted. Existing report files are never
+overwritten; a repeated run gets a new run ID and a new output path.
+
 ## Commands
 
 Retrieval only (default split is development):
@@ -16,8 +23,8 @@ Retrieval only (default split is development):
 uv run --locked python scripts/evaluate_retrieval.py --output experiments/evaluation/runs/vector-dev-new.json
 ```
 
-To include generation, configure `LLM_BASE_URL`, `LLM_MODEL`, and optional
-`LLM_API_KEY` in the backend environment, then add `--generate`. This explicitly
+To include generation, configure the chat provider/model route and its optional
+API key in the backend environment, then add `--generate`. This explicitly
 sends the synthetic questions and top-five passages to that provider. The recorded
 baseline uses local Ollama `llama3.1:8b`; no external service is needed.
 
@@ -25,14 +32,34 @@ baseline uses local Ollama `llama3.1:8b`; no external service is needed.
 uv run --locked python scripts/evaluate_retrieval.py --generate --output experiments/evaluation/runs/vector-dev-new.json
 ```
 
+To store the completed result in a migrated database, keep the same command and
+add `--persist`. Set `DATABASE_URL` explicitly in the process environment; this
+guard prevents an accidental write to the default local SQLite database. The
+database row includes dataset/code fingerprints, configuration, Recall@5, P95
+end-to-end question latency, and token totals. Citation accuracy and answer quality
+remain null until reviewed/scored in a later step. Per-question details remain in
+the JSON artifact, linked by the same run UUID. The database does not store API
+keys or raw credentials.
+
+Each generated question records the provider and model actually used, including
+fallbacks, and the provider-reported prompt/completion tokens when available.
+The summary and stored configuration count the actual provider/model pairs so a
+fallback is visible even when the declared route stays unchanged.
+Token totals remain null if any attempted generation lacks complete usage data;
+`token_usage_coverage` shows how many attempts reported both counts. A question
+that skips the provider for empty context uses zero tokens. P95 total latency
+includes local retrieval and generation for each question, but not corpus build,
+model warmup, JSON writes, HTTP API overhead, or network queueing outside the
+provider call. It is not production endpoint P95.
+
 Use `HF_HUB_OFFLINE=1` when the embedding model is already cached and network access
 is unnecessary. Chunk size and overlap use `CHUNK_SIZE` and `CHUNK_OVERLAP`; the
 recorded run explicitly sets 1024 and 64. Evaluation always returns five chunks,
 regardless of the application's configurable chat top-k. Existing output files
 are refused, preserving earlier runs. Use a fresh filename for another run.
 
-The held-out split requires both `--split held_out` and `--allow-held-out`. Reserve
-that command for the final frozen comparison. Structural dataset validation reads
+The historical held-out split requires both `--split held_out` and `--allow-held-out`.
+It was already scored in Phase 5 and is now a regression split. Structural dataset validation reads
 both splits, but only the selected split is embedded, retrieved, generated, or scored.
 
 ## Metric definitions fixed before comparisons
@@ -109,9 +136,11 @@ an accurate citation can accompany an incomplete answer.
 Manual agent review, if recorded, must identify itself as agent review and is not
 independent human annotation. Human review remains useful before drawing conclusions.
 
+For combined answer-quality and citation review, follow [Phase 14 step 4](PHASE14_STEP4.md).
+
 ## Reproducibility and failure handling
 
-Run files include corpus/split hashes, code and lockfile hashes, Git commit,
+Run files include dataset ID, corpus/split hashes, code and lockfile hashes, Git commit,
 platform/Python, model names, chunk settings, prompt hash, full rankings, and timings.
 The code hashes capture uncommitted implementation changes that a commit alone
 would miss. Fixture UUIDs are deterministic; equal cosine scores use UUID order,

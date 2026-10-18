@@ -1,0 +1,1733 @@
+{
+  "dataset_id": "synthetic-regression-v1",
+  "role": "synthetic regression; historical held_out is not unseen",
+  "generation": "not run; citation accuracy, answer quality, and token usage are unknown",
+  "runs": [
+    {
+      "run_id": "bbefe464-92fb-4014-9f59-3177a36e1729",
+      "split": "dev",
+      "strategy": "vector",
+      "report_sha256": "c57727b9a73f2c36d110c6e070e88550040b506c03ebc480aaff28de0fb68a59",
+      "code_version": "d7dbc0a809c5981f6ed9ff711bf276bef0cc2d15e87ffe56206ba558549daa28",
+      "config": {
+        "reranker": null,
+        "embedding_model": "BAAI/bge-small-en-v1.5",
+        "dimensions": 384,
+        "bm25": null,
+        "hybrid": null,
+        "chunk_size": 1024,
+        "chunk_overlap": 64,
+        "top_k": 5,
+        "chunk_count": 10,
+        "tie_break": "deterministic fixture chunk UUID",
+        "llm_model": null,
+        "chat_provider": null,
+        "chat_model": null,
+        "fallback_provider": null,
+        "fallback_model": null,
+        "token_limit_field": null,
+        "llm_timeout_seconds": null,
+        "prompt_sha256": null
+      },
+      "summary": {
+        "rerank_status_counts": {},
+        "reranking_ms_median": null,
+        "questions": 33,
+        "answerable_questions": 30,
+        "unanswerable_questions": 3,
+        "recall_at_5": 0.9833333333333333,
+        "mrr": 0.9,
+        "complete_evidence_at_5": 0.9666666666666667,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.9833333333333333,
+        "retrieval_ms_median": 6.210999999893829,
+        "retrieval_ms_p95": 8.004400006029755,
+        "p95_latency_ms": 8.073900011368096,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "total_tokens": null,
+        "token_usage_coverage": 0,
+        "generation_attempts": 0,
+        "generation_status_counts": {},
+        "actual_model_counts": {},
+        "unanswerable_abstention_rate": null,
+        "answerable_abstention_rate": null,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "generation not run"
+      },
+      "question_metrics": [
+        {
+          "id": "rag-001",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-002",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-003",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-004",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-005",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-006",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-009",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-010",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-011",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-012",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-013",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-014",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-017",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-018",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-019",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-020",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-021",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-022",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-025",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-026",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-027",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-028",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-029",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-030",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-033",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-034",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-035",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-036",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-037",
+          "answerable": true,
+          "recall_at_5": 0.5,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-038",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-041",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-042",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-043",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        }
+      ],
+      "python": "3.14.6",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "git_commit": "de03e08fd6ad5294d2ad03b83d2622358a9669d3",
+      "source_sha256": {
+        "scripts\\evaluate_retrieval.py": "9566f1fc57e5501d6bb5887acf11e7105f7e7465160e754a7f6042cbc56972bf",
+        "app\\services\\embeddings.py": "d1ca9e4234f2c30d5e242a5b5bccfcb5504aecd23c3d42be87022ffc455edd6e",
+        "app\\services\\text.py": "50b2c95e6cbc06a5322b0f60e44be16697e8ff55f00b5fb9941fffc028a4058a",
+        "app\\services\\generation.py": "59ee4d5278297310a815475f613ba090f12b0e71717797eb0f540cfe06024963",
+        "app\\services\\bm25.py": "fbc7119deb4f3dc1983847d0e0e9fb8dd88c615cbaf2f16c9cbc61c11fa400f0",
+        "app\\services\\reranking.py": "d01e4080ea23e736bb5dc3875d3bcc7af5068078795f05e9af19fd79d2e1fcc5",
+        "app\\services\\hybrid.py": "706ca04eb404da8ef4d8cce0b9c65b7ee76bcfaea23652cec33a4f7dd7d2e2c0",
+        "app\\services\\model_gateway.py": "1b0a13c9737459e63900818f308bc480dabcdf961a4b171c427782d3b9282b60",
+        "app\\core\\config.py": "855fd6f2a0fe57198edb7c9ad30bcb3ba75867b0538adf2bc07ee463bad448d3",
+        "scripts\\validate_evaluation_dataset.py": "9f6cc7e7a6871b3871f211b2891644a601378df75080400dccfbbad2338378ff",
+        "uv.lock": "56f6137e8c02f16503b9cc1610a5fb8e0b20157b3c370c6156e2e33be28b7296"
+      },
+      "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
+      "split_sha256": "d6c22cbf258b23094409f202e5c8e0cefecca173a5dc7323378ba1cec1f9003b"
+    },
+    {
+      "run_id": "09c95819-cb6d-483e-8398-404127548bbd",
+      "split": "dev",
+      "strategy": "bm25",
+      "report_sha256": "52d5baa228adc814acd304b11e1cb56f06ceb9338f16da841f810cb57544aabd",
+      "code_version": "d7dbc0a809c5981f6ed9ff711bf276bef0cc2d15e87ffe56206ba558549daa28",
+      "config": {
+        "reranker": null,
+        "embedding_model": null,
+        "dimensions": null,
+        "bm25": {
+          "k1": 1.2,
+          "b": 0.75,
+          "tokenizer": "nfkc-casefold-alphanumeric-v1",
+          "zero_score_policy": "exclude"
+        },
+        "hybrid": null,
+        "chunk_size": 1024,
+        "chunk_overlap": 64,
+        "top_k": 5,
+        "chunk_count": 10,
+        "tie_break": "deterministic fixture chunk UUID",
+        "llm_model": null,
+        "chat_provider": null,
+        "chat_model": null,
+        "fallback_provider": null,
+        "fallback_model": null,
+        "token_limit_field": null,
+        "llm_timeout_seconds": null,
+        "prompt_sha256": null
+      },
+      "summary": {
+        "rerank_status_counts": {},
+        "reranking_ms_median": null,
+        "questions": 33,
+        "answerable_questions": 30,
+        "unanswerable_questions": 3,
+        "recall_at_5": 0.9833333333333333,
+        "mrr": 0.9833333333333333,
+        "complete_evidence_at_5": 0.9666666666666667,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.9833333333333333,
+        "retrieval_ms_median": 0.08290002006106079,
+        "retrieval_ms_p95": 0.11750002158805728,
+        "p95_latency_ms": 0.19660001271404326,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "total_tokens": null,
+        "token_usage_coverage": 0,
+        "generation_attempts": 0,
+        "generation_status_counts": {},
+        "actual_model_counts": {},
+        "unanswerable_abstention_rate": null,
+        "answerable_abstention_rate": null,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "generation not run"
+      },
+      "question_metrics": [
+        {
+          "id": "rag-001",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-002",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-003",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-004",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-005",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-006",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-009",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-010",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-011",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-012",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-013",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-014",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-017",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-018",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-019",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-020",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-021",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-022",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-025",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-026",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-027",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-028",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-029",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-030",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-033",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-034",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-035",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-036",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-037",
+          "answerable": true,
+          "recall_at_5": 0.5,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-038",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-041",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-042",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-043",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        }
+      ],
+      "python": "3.14.6",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "git_commit": "de03e08fd6ad5294d2ad03b83d2622358a9669d3",
+      "source_sha256": {
+        "scripts\\evaluate_retrieval.py": "9566f1fc57e5501d6bb5887acf11e7105f7e7465160e754a7f6042cbc56972bf",
+        "app\\services\\embeddings.py": "d1ca9e4234f2c30d5e242a5b5bccfcb5504aecd23c3d42be87022ffc455edd6e",
+        "app\\services\\text.py": "50b2c95e6cbc06a5322b0f60e44be16697e8ff55f00b5fb9941fffc028a4058a",
+        "app\\services\\generation.py": "59ee4d5278297310a815475f613ba090f12b0e71717797eb0f540cfe06024963",
+        "app\\services\\bm25.py": "fbc7119deb4f3dc1983847d0e0e9fb8dd88c615cbaf2f16c9cbc61c11fa400f0",
+        "app\\services\\reranking.py": "d01e4080ea23e736bb5dc3875d3bcc7af5068078795f05e9af19fd79d2e1fcc5",
+        "app\\services\\hybrid.py": "706ca04eb404da8ef4d8cce0b9c65b7ee76bcfaea23652cec33a4f7dd7d2e2c0",
+        "app\\services\\model_gateway.py": "1b0a13c9737459e63900818f308bc480dabcdf961a4b171c427782d3b9282b60",
+        "app\\core\\config.py": "855fd6f2a0fe57198edb7c9ad30bcb3ba75867b0538adf2bc07ee463bad448d3",
+        "scripts\\validate_evaluation_dataset.py": "9f6cc7e7a6871b3871f211b2891644a601378df75080400dccfbbad2338378ff",
+        "uv.lock": "56f6137e8c02f16503b9cc1610a5fb8e0b20157b3c370c6156e2e33be28b7296"
+      },
+      "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
+      "split_sha256": "d6c22cbf258b23094409f202e5c8e0cefecca173a5dc7323378ba1cec1f9003b"
+    },
+    {
+      "run_id": "55a2e381-a2f7-4848-bb75-52508fc2ed5a",
+      "split": "dev",
+      "strategy": "hybrid",
+      "report_sha256": "f46c481cc46c503ce63dd8263de048b083fbba8555b4cd1e903c27fec05520f9",
+      "code_version": "d7dbc0a809c5981f6ed9ff711bf276bef0cc2d15e87ffe56206ba558549daa28",
+      "config": {
+        "reranker": null,
+        "embedding_model": "BAAI/bge-small-en-v1.5",
+        "dimensions": 384,
+        "bm25": {
+          "k1": 1.2,
+          "b": 0.75,
+          "tokenizer": "nfkc-casefold-alphanumeric-v1",
+          "zero_score_policy": "exclude"
+        },
+        "hybrid": {
+          "candidates_per_branch": 20,
+          "rrf_k": 60,
+          "weights": "equal"
+        },
+        "chunk_size": 1024,
+        "chunk_overlap": 64,
+        "top_k": 5,
+        "chunk_count": 10,
+        "tie_break": "deterministic fixture chunk UUID",
+        "llm_model": null,
+        "chat_provider": null,
+        "chat_model": null,
+        "fallback_provider": null,
+        "fallback_model": null,
+        "token_limit_field": null,
+        "llm_timeout_seconds": null,
+        "prompt_sha256": null
+      },
+      "summary": {
+        "rerank_status_counts": {},
+        "reranking_ms_median": null,
+        "questions": 33,
+        "answerable_questions": 30,
+        "unanswerable_questions": 3,
+        "recall_at_5": 0.9833333333333333,
+        "mrr": 0.95,
+        "complete_evidence_at_5": 0.9666666666666667,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.9833333333333333,
+        "retrieval_ms_median": 6.550799997057766,
+        "retrieval_ms_p95": 8.077499980572611,
+        "p95_latency_ms": 8.323899994138628,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "total_tokens": null,
+        "token_usage_coverage": 0,
+        "generation_attempts": 0,
+        "generation_status_counts": {},
+        "actual_model_counts": {},
+        "unanswerable_abstention_rate": null,
+        "answerable_abstention_rate": null,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "generation not run"
+      },
+      "question_metrics": [
+        {
+          "id": "rag-001",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-002",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-003",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-004",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-005",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-006",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-009",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-010",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-011",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-012",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-013",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-014",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-017",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-018",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-019",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-020",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-021",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-022",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-025",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-026",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-027",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-028",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-029",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-030",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-033",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-034",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-035",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-036",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-037",
+          "answerable": true,
+          "recall_at_5": 0.5,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-038",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-041",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-042",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-043",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        }
+      ],
+      "python": "3.14.6",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "git_commit": "de03e08fd6ad5294d2ad03b83d2622358a9669d3",
+      "source_sha256": {
+        "scripts\\evaluate_retrieval.py": "9566f1fc57e5501d6bb5887acf11e7105f7e7465160e754a7f6042cbc56972bf",
+        "app\\services\\embeddings.py": "d1ca9e4234f2c30d5e242a5b5bccfcb5504aecd23c3d42be87022ffc455edd6e",
+        "app\\services\\text.py": "50b2c95e6cbc06a5322b0f60e44be16697e8ff55f00b5fb9941fffc028a4058a",
+        "app\\services\\generation.py": "59ee4d5278297310a815475f613ba090f12b0e71717797eb0f540cfe06024963",
+        "app\\services\\bm25.py": "fbc7119deb4f3dc1983847d0e0e9fb8dd88c615cbaf2f16c9cbc61c11fa400f0",
+        "app\\services\\reranking.py": "d01e4080ea23e736bb5dc3875d3bcc7af5068078795f05e9af19fd79d2e1fcc5",
+        "app\\services\\hybrid.py": "706ca04eb404da8ef4d8cce0b9c65b7ee76bcfaea23652cec33a4f7dd7d2e2c0",
+        "app\\services\\model_gateway.py": "1b0a13c9737459e63900818f308bc480dabcdf961a4b171c427782d3b9282b60",
+        "app\\core\\config.py": "855fd6f2a0fe57198edb7c9ad30bcb3ba75867b0538adf2bc07ee463bad448d3",
+        "scripts\\validate_evaluation_dataset.py": "9f6cc7e7a6871b3871f211b2891644a601378df75080400dccfbbad2338378ff",
+        "uv.lock": "56f6137e8c02f16503b9cc1610a5fb8e0b20157b3c370c6156e2e33be28b7296"
+      },
+      "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
+      "split_sha256": "d6c22cbf258b23094409f202e5c8e0cefecca173a5dc7323378ba1cec1f9003b"
+    },
+    {
+      "run_id": "17383765-7e12-4a0a-91e5-cbfc74ab1b12",
+      "split": "dev",
+      "strategy": "hybrid_reranked",
+      "report_sha256": "100ff2bb1c8be83d6f06c9c26ac60bd7eccffe035c2d15767b7dd6bbceba9249",
+      "code_version": "d7dbc0a809c5981f6ed9ff711bf276bef0cc2d15e87ffe56206ba558549daa28",
+      "config": {
+        "reranker": {
+          "model": "Xenova/ms-marco-MiniLM-L-6-v2",
+          "candidates": 20,
+          "threads": 2,
+          "batch_size": 8,
+          "max_pair_tokens": 512
+        },
+        "embedding_model": "BAAI/bge-small-en-v1.5",
+        "dimensions": 384,
+        "bm25": {
+          "k1": 1.2,
+          "b": 0.75,
+          "tokenizer": "nfkc-casefold-alphanumeric-v1",
+          "zero_score_policy": "exclude"
+        },
+        "hybrid": {
+          "candidates_per_branch": 20,
+          "rrf_k": 60,
+          "weights": "equal"
+        },
+        "chunk_size": 1024,
+        "chunk_overlap": 64,
+        "top_k": 5,
+        "chunk_count": 10,
+        "tie_break": "deterministic fixture chunk UUID",
+        "llm_model": null,
+        "chat_provider": null,
+        "chat_model": null,
+        "fallback_provider": null,
+        "fallback_model": null,
+        "token_limit_field": null,
+        "llm_timeout_seconds": null,
+        "prompt_sha256": null
+      },
+      "summary": {
+        "rerank_status_counts": {
+          "applied": 33
+        },
+        "reranking_ms_median": 620.8005000080448,
+        "questions": 33,
+        "answerable_questions": 30,
+        "unanswerable_questions": 3,
+        "recall_at_5": 0.9833333333333333,
+        "mrr": 0.9833333333333333,
+        "complete_evidence_at_5": 0.9666666666666667,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.9833333333333333,
+        "retrieval_ms_median": 631.5109000133816,
+        "retrieval_ms_p95": 786.7222999921069,
+        "p95_latency_ms": 787.2823000070639,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "total_tokens": null,
+        "token_usage_coverage": 0,
+        "generation_attempts": 0,
+        "generation_status_counts": {},
+        "actual_model_counts": {},
+        "unanswerable_abstention_rate": null,
+        "answerable_abstention_rate": null,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "generation not run"
+      },
+      "question_metrics": [
+        {
+          "id": "rag-001",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-002",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-003",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-004",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-005",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-006",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-009",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-010",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-011",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-012",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-013",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-014",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-017",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-018",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-019",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-020",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-021",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-022",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-025",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-026",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-027",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-028",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-029",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-030",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-033",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-034",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-035",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-036",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-037",
+          "answerable": true,
+          "recall_at_5": 0.5,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-038",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-041",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-042",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-043",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        }
+      ],
+      "python": "3.14.6",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "git_commit": "de03e08fd6ad5294d2ad03b83d2622358a9669d3",
+      "source_sha256": {
+        "scripts\\evaluate_retrieval.py": "9566f1fc57e5501d6bb5887acf11e7105f7e7465160e754a7f6042cbc56972bf",
+        "app\\services\\embeddings.py": "d1ca9e4234f2c30d5e242a5b5bccfcb5504aecd23c3d42be87022ffc455edd6e",
+        "app\\services\\text.py": "50b2c95e6cbc06a5322b0f60e44be16697e8ff55f00b5fb9941fffc028a4058a",
+        "app\\services\\generation.py": "59ee4d5278297310a815475f613ba090f12b0e71717797eb0f540cfe06024963",
+        "app\\services\\bm25.py": "fbc7119deb4f3dc1983847d0e0e9fb8dd88c615cbaf2f16c9cbc61c11fa400f0",
+        "app\\services\\reranking.py": "d01e4080ea23e736bb5dc3875d3bcc7af5068078795f05e9af19fd79d2e1fcc5",
+        "app\\services\\hybrid.py": "706ca04eb404da8ef4d8cce0b9c65b7ee76bcfaea23652cec33a4f7dd7d2e2c0",
+        "app\\services\\model_gateway.py": "1b0a13c9737459e63900818f308bc480dabcdf961a4b171c427782d3b9282b60",
+        "app\\core\\config.py": "855fd6f2a0fe57198edb7c9ad30bcb3ba75867b0538adf2bc07ee463bad448d3",
+        "scripts\\validate_evaluation_dataset.py": "9f6cc7e7a6871b3871f211b2891644a601378df75080400dccfbbad2338378ff",
+        "uv.lock": "56f6137e8c02f16503b9cc1610a5fb8e0b20157b3c370c6156e2e33be28b7296"
+      },
+      "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
+      "split_sha256": "d6c22cbf258b23094409f202e5c8e0cefecca173a5dc7323378ba1cec1f9003b"
+    },
+    {
+      "run_id": "67d6976c-798c-4bb5-99f8-48b848f6978d",
+      "split": "held_out",
+      "strategy": "vector",
+      "report_sha256": "4aa163682817112835ab627caece796bc52564e66aab239c1d71d3a606c46f59",
+      "code_version": "d7dbc0a809c5981f6ed9ff711bf276bef0cc2d15e87ffe56206ba558549daa28",
+      "config": {
+        "reranker": null,
+        "embedding_model": "BAAI/bge-small-en-v1.5",
+        "dimensions": 384,
+        "bm25": null,
+        "hybrid": null,
+        "chunk_size": 1024,
+        "chunk_overlap": 64,
+        "top_k": 5,
+        "chunk_count": 10,
+        "tie_break": "deterministic fixture chunk UUID",
+        "llm_model": null,
+        "chat_provider": null,
+        "chat_model": null,
+        "fallback_provider": null,
+        "fallback_model": null,
+        "token_limit_field": null,
+        "llm_timeout_seconds": null,
+        "prompt_sha256": null
+      },
+      "summary": {
+        "rerank_status_counts": {},
+        "reranking_ms_median": null,
+        "questions": 12,
+        "answerable_questions": 10,
+        "unanswerable_questions": 2,
+        "recall_at_5": 0.95,
+        "mrr": 1.0,
+        "complete_evidence_at_5": 0.9,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.95,
+        "retrieval_ms_median": 6.150300003355369,
+        "retrieval_ms_p95": 8.521500014467165,
+        "p95_latency_ms": 8.593600010499358,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "total_tokens": null,
+        "token_usage_coverage": 0,
+        "generation_attempts": 0,
+        "generation_status_counts": {},
+        "actual_model_counts": {},
+        "unanswerable_abstention_rate": null,
+        "answerable_abstention_rate": null,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "generation not run"
+      },
+      "question_metrics": [
+        {
+          "id": "rag-007",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-008",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-015",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-016",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-023",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-024",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-031",
+          "answerable": true,
+          "recall_at_5": 0.5,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-032",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-039",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-040",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-044",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-045",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        }
+      ],
+      "python": "3.14.6",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "git_commit": "de03e08fd6ad5294d2ad03b83d2622358a9669d3",
+      "source_sha256": {
+        "scripts\\evaluate_retrieval.py": "9566f1fc57e5501d6bb5887acf11e7105f7e7465160e754a7f6042cbc56972bf",
+        "app\\services\\embeddings.py": "d1ca9e4234f2c30d5e242a5b5bccfcb5504aecd23c3d42be87022ffc455edd6e",
+        "app\\services\\text.py": "50b2c95e6cbc06a5322b0f60e44be16697e8ff55f00b5fb9941fffc028a4058a",
+        "app\\services\\generation.py": "59ee4d5278297310a815475f613ba090f12b0e71717797eb0f540cfe06024963",
+        "app\\services\\bm25.py": "fbc7119deb4f3dc1983847d0e0e9fb8dd88c615cbaf2f16c9cbc61c11fa400f0",
+        "app\\services\\reranking.py": "d01e4080ea23e736bb5dc3875d3bcc7af5068078795f05e9af19fd79d2e1fcc5",
+        "app\\services\\hybrid.py": "706ca04eb404da8ef4d8cce0b9c65b7ee76bcfaea23652cec33a4f7dd7d2e2c0",
+        "app\\services\\model_gateway.py": "1b0a13c9737459e63900818f308bc480dabcdf961a4b171c427782d3b9282b60",
+        "app\\core\\config.py": "855fd6f2a0fe57198edb7c9ad30bcb3ba75867b0538adf2bc07ee463bad448d3",
+        "scripts\\validate_evaluation_dataset.py": "9f6cc7e7a6871b3871f211b2891644a601378df75080400dccfbbad2338378ff",
+        "uv.lock": "56f6137e8c02f16503b9cc1610a5fb8e0b20157b3c370c6156e2e33be28b7296"
+      },
+      "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
+      "split_sha256": "448c30f92bdd85dd9345a1996ddf6a8163311806feded1389642603dd03b3056"
+    },
+    {
+      "run_id": "a9b443a3-8209-4cee-b805-52691b741728",
+      "split": "held_out",
+      "strategy": "bm25",
+      "report_sha256": "155a2dd33c93a09f62ab37f3b9077b8aa4f114d8312a831486867c35ef11d19e",
+      "code_version": "d7dbc0a809c5981f6ed9ff711bf276bef0cc2d15e87ffe56206ba558549daa28",
+      "config": {
+        "reranker": null,
+        "embedding_model": null,
+        "dimensions": null,
+        "bm25": {
+          "k1": 1.2,
+          "b": 0.75,
+          "tokenizer": "nfkc-casefold-alphanumeric-v1",
+          "zero_score_policy": "exclude"
+        },
+        "hybrid": null,
+        "chunk_size": 1024,
+        "chunk_overlap": 64,
+        "top_k": 5,
+        "chunk_count": 10,
+        "tie_break": "deterministic fixture chunk UUID",
+        "llm_model": null,
+        "chat_provider": null,
+        "chat_model": null,
+        "fallback_provider": null,
+        "fallback_model": null,
+        "token_limit_field": null,
+        "llm_timeout_seconds": null,
+        "prompt_sha256": null
+      },
+      "summary": {
+        "rerank_status_counts": {},
+        "reranking_ms_median": null,
+        "questions": 12,
+        "answerable_questions": 10,
+        "unanswerable_questions": 2,
+        "recall_at_5": 0.95,
+        "mrr": 0.9,
+        "complete_evidence_at_5": 0.9,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.95,
+        "retrieval_ms_median": 0.07225001172628254,
+        "retrieval_ms_p95": 0.149500003317371,
+        "p95_latency_ms": 0.21299999207258224,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "total_tokens": null,
+        "token_usage_coverage": 0,
+        "generation_attempts": 0,
+        "generation_status_counts": {},
+        "actual_model_counts": {},
+        "unanswerable_abstention_rate": null,
+        "answerable_abstention_rate": null,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "generation not run"
+      },
+      "question_metrics": [
+        {
+          "id": "rag-007",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-008",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-015",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-016",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-023",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-024",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 0.5
+        },
+        {
+          "id": "rag-031",
+          "answerable": true,
+          "recall_at_5": 0.5,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-032",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-039",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-040",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-044",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-045",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        }
+      ],
+      "python": "3.14.6",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "git_commit": "de03e08fd6ad5294d2ad03b83d2622358a9669d3",
+      "source_sha256": {
+        "scripts\\evaluate_retrieval.py": "9566f1fc57e5501d6bb5887acf11e7105f7e7465160e754a7f6042cbc56972bf",
+        "app\\services\\embeddings.py": "d1ca9e4234f2c30d5e242a5b5bccfcb5504aecd23c3d42be87022ffc455edd6e",
+        "app\\services\\text.py": "50b2c95e6cbc06a5322b0f60e44be16697e8ff55f00b5fb9941fffc028a4058a",
+        "app\\services\\generation.py": "59ee4d5278297310a815475f613ba090f12b0e71717797eb0f540cfe06024963",
+        "app\\services\\bm25.py": "fbc7119deb4f3dc1983847d0e0e9fb8dd88c615cbaf2f16c9cbc61c11fa400f0",
+        "app\\services\\reranking.py": "d01e4080ea23e736bb5dc3875d3bcc7af5068078795f05e9af19fd79d2e1fcc5",
+        "app\\services\\hybrid.py": "706ca04eb404da8ef4d8cce0b9c65b7ee76bcfaea23652cec33a4f7dd7d2e2c0",
+        "app\\services\\model_gateway.py": "1b0a13c9737459e63900818f308bc480dabcdf961a4b171c427782d3b9282b60",
+        "app\\core\\config.py": "855fd6f2a0fe57198edb7c9ad30bcb3ba75867b0538adf2bc07ee463bad448d3",
+        "scripts\\validate_evaluation_dataset.py": "9f6cc7e7a6871b3871f211b2891644a601378df75080400dccfbbad2338378ff",
+        "uv.lock": "56f6137e8c02f16503b9cc1610a5fb8e0b20157b3c370c6156e2e33be28b7296"
+      },
+      "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
+      "split_sha256": "448c30f92bdd85dd9345a1996ddf6a8163311806feded1389642603dd03b3056"
+    },
+    {
+      "run_id": "0e25d8ae-ae5a-4150-aec2-27dc9f2189ee",
+      "split": "held_out",
+      "strategy": "hybrid",
+      "report_sha256": "143e43fd4a3db25e06f2c846e6bdb7f1e16de85dfce433e5c837cf700ecf644c",
+      "code_version": "d7dbc0a809c5981f6ed9ff711bf276bef0cc2d15e87ffe56206ba558549daa28",
+      "config": {
+        "reranker": null,
+        "embedding_model": "BAAI/bge-small-en-v1.5",
+        "dimensions": 384,
+        "bm25": {
+          "k1": 1.2,
+          "b": 0.75,
+          "tokenizer": "nfkc-casefold-alphanumeric-v1",
+          "zero_score_policy": "exclude"
+        },
+        "hybrid": {
+          "candidates_per_branch": 20,
+          "rrf_k": 60,
+          "weights": "equal"
+        },
+        "chunk_size": 1024,
+        "chunk_overlap": 64,
+        "top_k": 5,
+        "chunk_count": 10,
+        "tie_break": "deterministic fixture chunk UUID",
+        "llm_model": null,
+        "chat_provider": null,
+        "chat_model": null,
+        "fallback_provider": null,
+        "fallback_model": null,
+        "token_limit_field": null,
+        "llm_timeout_seconds": null,
+        "prompt_sha256": null
+      },
+      "summary": {
+        "rerank_status_counts": {},
+        "reranking_ms_median": null,
+        "questions": 12,
+        "answerable_questions": 10,
+        "unanswerable_questions": 2,
+        "recall_at_5": 0.95,
+        "mrr": 1.0,
+        "complete_evidence_at_5": 0.9,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.95,
+        "retrieval_ms_median": 6.959500009543262,
+        "retrieval_ms_p95": 9.410099999513477,
+        "p95_latency_ms": 9.541899984469637,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "total_tokens": null,
+        "token_usage_coverage": 0,
+        "generation_attempts": 0,
+        "generation_status_counts": {},
+        "actual_model_counts": {},
+        "unanswerable_abstention_rate": null,
+        "answerable_abstention_rate": null,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "generation not run"
+      },
+      "question_metrics": [
+        {
+          "id": "rag-007",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-008",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-015",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-016",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-023",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-024",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-031",
+          "answerable": true,
+          "recall_at_5": 0.5,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-032",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-039",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-040",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-044",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-045",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        }
+      ],
+      "python": "3.14.6",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "git_commit": "de03e08fd6ad5294d2ad03b83d2622358a9669d3",
+      "source_sha256": {
+        "scripts\\evaluate_retrieval.py": "9566f1fc57e5501d6bb5887acf11e7105f7e7465160e754a7f6042cbc56972bf",
+        "app\\services\\embeddings.py": "d1ca9e4234f2c30d5e242a5b5bccfcb5504aecd23c3d42be87022ffc455edd6e",
+        "app\\services\\text.py": "50b2c95e6cbc06a5322b0f60e44be16697e8ff55f00b5fb9941fffc028a4058a",
+        "app\\services\\generation.py": "59ee4d5278297310a815475f613ba090f12b0e71717797eb0f540cfe06024963",
+        "app\\services\\bm25.py": "fbc7119deb4f3dc1983847d0e0e9fb8dd88c615cbaf2f16c9cbc61c11fa400f0",
+        "app\\services\\reranking.py": "d01e4080ea23e736bb5dc3875d3bcc7af5068078795f05e9af19fd79d2e1fcc5",
+        "app\\services\\hybrid.py": "706ca04eb404da8ef4d8cce0b9c65b7ee76bcfaea23652cec33a4f7dd7d2e2c0",
+        "app\\services\\model_gateway.py": "1b0a13c9737459e63900818f308bc480dabcdf961a4b171c427782d3b9282b60",
+        "app\\core\\config.py": "855fd6f2a0fe57198edb7c9ad30bcb3ba75867b0538adf2bc07ee463bad448d3",
+        "scripts\\validate_evaluation_dataset.py": "9f6cc7e7a6871b3871f211b2891644a601378df75080400dccfbbad2338378ff",
+        "uv.lock": "56f6137e8c02f16503b9cc1610a5fb8e0b20157b3c370c6156e2e33be28b7296"
+      },
+      "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
+      "split_sha256": "448c30f92bdd85dd9345a1996ddf6a8163311806feded1389642603dd03b3056"
+    },
+    {
+      "run_id": "e2318ff6-726c-43d3-b73b-fcabd25579c7",
+      "split": "held_out",
+      "strategy": "hybrid_reranked",
+      "report_sha256": "97724c62b933421ff7cfa3ab5176b0cc2f5d0de1288a5bcc1101bcb4c819abdb",
+      "code_version": "d7dbc0a809c5981f6ed9ff711bf276bef0cc2d15e87ffe56206ba558549daa28",
+      "config": {
+        "reranker": {
+          "model": "Xenova/ms-marco-MiniLM-L-6-v2",
+          "candidates": 20,
+          "threads": 2,
+          "batch_size": 8,
+          "max_pair_tokens": 512
+        },
+        "embedding_model": "BAAI/bge-small-en-v1.5",
+        "dimensions": 384,
+        "bm25": {
+          "k1": 1.2,
+          "b": 0.75,
+          "tokenizer": "nfkc-casefold-alphanumeric-v1",
+          "zero_score_policy": "exclude"
+        },
+        "hybrid": {
+          "candidates_per_branch": 20,
+          "rrf_k": 60,
+          "weights": "equal"
+        },
+        "chunk_size": 1024,
+        "chunk_overlap": 64,
+        "top_k": 5,
+        "chunk_count": 10,
+        "tie_break": "deterministic fixture chunk UUID",
+        "llm_model": null,
+        "chat_provider": null,
+        "chat_model": null,
+        "fallback_provider": null,
+        "fallback_model": null,
+        "token_limit_field": null,
+        "llm_timeout_seconds": null,
+        "prompt_sha256": null
+      },
+      "summary": {
+        "rerank_status_counts": {
+          "applied": 12
+        },
+        "reranking_ms_median": 703.6609500064515,
+        "questions": 12,
+        "answerable_questions": 10,
+        "unanswerable_questions": 2,
+        "recall_at_5": 0.95,
+        "mrr": 1.0,
+        "complete_evidence_at_5": 0.9,
+        "page_hit_at_5": 1,
+        "chunking_evidence_ceiling": 0.95,
+        "retrieval_ms_median": 718.3901999960653,
+        "retrieval_ms_p95": 841.58059998299,
+        "p95_latency_ms": 841.8248999805655,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "total_tokens": null,
+        "token_usage_coverage": 0,
+        "generation_attempts": 0,
+        "generation_status_counts": {},
+        "actual_model_counts": {},
+        "unanswerable_abstention_rate": null,
+        "answerable_abstention_rate": null,
+        "citation_accuracy": null,
+        "citation_accuracy_status": "generation not run"
+      },
+      "question_metrics": [
+        {
+          "id": "rag-007",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-008",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-015",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-016",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-023",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-024",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-031",
+          "answerable": true,
+          "recall_at_5": 0.5,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-032",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-039",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-040",
+          "answerable": true,
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0
+        },
+        {
+          "id": "rag-044",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        },
+        {
+          "id": "rag-045",
+          "answerable": false,
+          "recall_at_5": null,
+          "reciprocal_rank": null
+        }
+      ],
+      "python": "3.14.6",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "git_commit": "de03e08fd6ad5294d2ad03b83d2622358a9669d3",
+      "source_sha256": {
+        "scripts\\evaluate_retrieval.py": "9566f1fc57e5501d6bb5887acf11e7105f7e7465160e754a7f6042cbc56972bf",
+        "app\\services\\embeddings.py": "d1ca9e4234f2c30d5e242a5b5bccfcb5504aecd23c3d42be87022ffc455edd6e",
+        "app\\services\\text.py": "50b2c95e6cbc06a5322b0f60e44be16697e8ff55f00b5fb9941fffc028a4058a",
+        "app\\services\\generation.py": "59ee4d5278297310a815475f613ba090f12b0e71717797eb0f540cfe06024963",
+        "app\\services\\bm25.py": "fbc7119deb4f3dc1983847d0e0e9fb8dd88c615cbaf2f16c9cbc61c11fa400f0",
+        "app\\services\\reranking.py": "d01e4080ea23e736bb5dc3875d3bcc7af5068078795f05e9af19fd79d2e1fcc5",
+        "app\\services\\hybrid.py": "706ca04eb404da8ef4d8cce0b9c65b7ee76bcfaea23652cec33a4f7dd7d2e2c0",
+        "app\\services\\model_gateway.py": "1b0a13c9737459e63900818f308bc480dabcdf961a4b171c427782d3b9282b60",
+        "app\\core\\config.py": "855fd6f2a0fe57198edb7c9ad30bcb3ba75867b0538adf2bc07ee463bad448d3",
+        "scripts\\validate_evaluation_dataset.py": "9f6cc7e7a6871b3871f211b2891644a601378df75080400dccfbbad2338378ff",
+        "uv.lock": "56f6137e8c02f16503b9cc1610a5fb8e0b20157b3c370c6156e2e33be28b7296"
+      },
+      "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
+      "split_sha256": "448c30f92bdd85dd9345a1996ddf6a8163311806feded1389642603dd03b3056"
+    }
+  ]
+}

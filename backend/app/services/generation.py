@@ -2,6 +2,7 @@
 import json
 import re
 import uuid
+from collections.abc import Callable
 from time import perf_counter
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -75,7 +76,8 @@ def complete(message: str, passages: list[SearchResult]) -> Generation:
 
 def generate_answer(message: str, passages: list[SearchResult],
                     workspace_id: uuid.UUID | None = None,
-                    corpus_revision: int | None = None) -> ChatResponse:
+                    corpus_revision: int | None = None,
+                    on_completion: Callable[[Generation], None] | None = None) -> ChatResponse:
     if not passages:
         return ChatResponse(answer=ABSTENTION, sources=[], retrieved_chunks=[], status="insufficient_evidence")
     cache_key = None
@@ -98,6 +100,8 @@ def generate_answer(message: str, passages: list[SearchResult],
     completion: Generation | str
     started = perf_counter()
     completion = cached["data"] if cached and isinstance(cached.get("data"), str) else complete(message, passages)
+    if isinstance(completion, Generation) and on_completion is not None:
+        on_completion(completion)
     content = completion.text if isinstance(completion, Generation) else completion
     try:
         result = GeneratedAnswer.model_validate_json(content)

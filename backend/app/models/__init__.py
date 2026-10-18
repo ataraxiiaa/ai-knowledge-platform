@@ -1,8 +1,9 @@
 from app.db.base import Base
 from app.models.chunks import Chunk
 from app.models.documents import Document
+from app.models.experiments import ExperimentRun, ExperimentReview
 from app.models.research import ResearchJob, ResearchDispatch, ResearchJobSource, ResearchJobStep
 from app.models.users import User
 from app.models.workspaces import Workspace
 
-__all__ = ["Base", "User", "Workspace", "Document", "Chunk", "ResearchJob", "ResearchDispatch", "ResearchJobSource", "ResearchJobStep"]
+__all__ = ["Base", "User", "Workspace", "Document", "Chunk", "ResearchJob", "ResearchDispatch", "ResearchJobSource", "ResearchJobStep", "ExperimentRun", "ExperimentReview"]

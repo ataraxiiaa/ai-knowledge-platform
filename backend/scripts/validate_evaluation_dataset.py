@@ -13,6 +13,9 @@ def require(condition: bool, message: str) -> None:
 
 def validate(root: Path) -> dict:
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    require(manifest.get("version") == 1 and manifest.get("dataset_id") == "synthetic-regression-v1",
+            "Unknown evaluation dataset version")
+    require(set(manifest["splits"]) == {"dev", "held_out"}, "Expected dev and held_out splits")
     raw = (root / manifest["corpus_file"]).read_bytes()
     require(hashlib.sha256(raw).hexdigest() == manifest["corpus_sha256"], "Corpus fingerprint changed")
     corpus = json.loads(raw)
@@ -29,7 +32,10 @@ def validate(root: Path) -> dict:
     ids, questions, evidence_splits = set(), set(), {}
     totals, by_page, by_category = Counter(), Counter(), Counter()
     for split, spec in manifest["splits"].items():
-        examples = json.loads((root / spec["file"]).read_text(encoding="utf-8"))
+        split_bytes = (root / spec["file"]).read_bytes()
+        require(hashlib.sha256(split_bytes).hexdigest() == spec["sha256"],
+                f"{split} split fingerprint changed")
+        examples = json.loads(split_bytes)
         require(len(examples) == spec["count"], f"Wrong {split} example count")
         for item in examples:
             label = item["id"]
@@ -72,7 +78,9 @@ def validate(root: Path) -> dict:
     require(totals["unanswerable"] == manifest["unanswerable_count"], "Unanswerable count mismatch")
     return {"status": "passed", "examples": len(ids), "counts": dict(totals),
             "answerable_by_page": dict(by_page), "categories": dict(by_category),
+            "dataset_id": manifest["dataset_id"],
             "corpus_sha256": manifest["corpus_sha256"],
+            "split_sha256": {split: spec["sha256"] for split, spec in manifest["splits"].items()},
             "note": "Structural and exact-source validation only; no retrieval scores or semantic grading."}
 
 

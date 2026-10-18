@@ -1,0 +1,9 @@
+# Phase 14, step 2: experiment run storage
+
+Alembic revision `0007` adds a platform-level `experiment_runs` table. It has no workspace foreign key because the first frozen evaluation dataset is not tied to a user workspace. Each row is inserted only after a run ends, with `status` either `completed` or `failed`; the Phase 5 JSON runner remains the in-progress checkpoint in step 2. PostgreSQL and SQLite migration triggers reject later updates or deletes, and ORM events reject those operations when tests create tables directly from metadata.
+
+Required provenance: dataset ID, corpus and split SHA-256 fingerprints, code version, JSON configuration, start and completion timestamps. The configuration can record embedding model, chunk settings, retrieval/rerank strategy, prompt hash, and LLM information without a schema change for every parameter. Never place API keys or raw credentials in configuration or error text. Core comparison metrics have explicit nullable columns: Recall@5, citation accuracy, answer quality, P95 end-to-end latency in milliseconds, and prompt/completion/total tokens. `NULL` means not measured or not yet reviewed; zero is a measured value. A failed run can retain partial metrics and a textual error. The table records creation time separately from run completion time.
+
+The database checks terminal status, Recall@5 and citation ranges, nonnegative latency, and nonnegative token counts. Answer quality has no range constraint until step 4 approves a rubric. Step 3 writes completed rows from the optional evaluator flag; per-question output remains in a JSON artifact with the same run UUID. No API endpoint or automatic evaluation job is introduced here.
+
+Apply with `uv run --locked alembic upgrade head` from `backend/` after reviewing the migration. The downgrade drops this table and all experiment history; use it only on a disposable database when testing.

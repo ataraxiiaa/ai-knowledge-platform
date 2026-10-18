@@ -1,26 +1,30 @@
 {
   "version": 1,
+  "dataset_id": "synthetic-regression-v1",
   "corpus_file": "corpus.json",
   "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
   "splits": {
     "dev": {
       "file": "dev.json",
-      "count": 33
+      "count": 33,
+      "sha256": "d6c22cbf258b23094409f202e5c8e0cefecca173a5dc7323378ba1cec1f9003b"
     },
     "held_out": {
       "file": "held-out.json",
-      "count": 12
+      "count": 12,
+      "sha256": "448c30f92bdd85dd9345a1996ddf6a8163311806feded1389642603dd03b3056"
     }
   },
   "answerable_count": 40,
   "unanswerable_count": 5,
-  "annotation_status": "Agent-authored and source-checked; pending user review",
+  "annotation_status": "Agent-authored and source-checked; pending independent human review",
+  "evaluation_role": "historical regression; held_out was scored in Phase 5 and is not unseen",
   "source": "../corpus.json",
   "limitations": [
     "Synthetic English text; one logical document, five pages.",
     "Question-level split, not document-disjoint; held-out questions share the corpus.",
     "Development includes concepts already used in the eight-question smoke baseline.",
-    "Held-out questions have not been scored or used to tune retrieval.",
+    "The historical held-out questions were scored in Phase 5 and are no longer unseen; they were not used for tuning before that comparison.",
     "No independent human annotation or real PDF layout evaluation."
   ]
 }

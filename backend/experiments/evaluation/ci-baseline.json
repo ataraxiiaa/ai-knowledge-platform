@@ -1,0 +1,14 @@
+{
+  "dataset_id": "synthetic-regression-v1",
+  "split": "dev",
+  "corpus_sha256": "29b5b2d471402da05851a370a96401e9e01164317667083ee73a4729e47972f5",
+  "split_sha256": "d6c22cbf258b23094409f202e5c8e0cefecca173a5dc7323378ba1cec1f9003b",
+  "expected_questions": 33,
+  "chunk_size": 1024,
+  "chunk_overlap": 64,
+  "minimum_recall_at_5": {
+    "vector": 0.98,
+    "bm25": 0.98,
+    "hybrid": 0.98
+  }
+}

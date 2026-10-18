@@ -1,8 +1,11 @@
 # Phase 5, step 2: evaluation dataset v1
 
-Status: step 2 accepted for progression to step 3; independent human annotation
-review remains pending. The [evaluation runner](RUNNER.md) now evaluates the
-development split. Held-out questions remain unscored.
+Phase 14 freezes this fixture as the first permanent synthetic regression suite, [`synthetic-regression-v1`](PHASE14_CONTRACT.md), with hashes for both question files. Its old held-out split has already been scored and is now a regression split, not unseen final data. Independent annotation review remains pending; real-PDF coverage belongs in a later dataset version.
+
+Status: the original Phase 5 comparison is complete; independent human annotation
+review remains pending. The [evaluation runner](RUNNER.md) can evaluate both the
+development and historical held-out splits. The latter was scored in Phase 5 and
+is no longer unseen.
 
 ## Contents
 

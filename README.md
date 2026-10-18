@@ -557,3 +557,11 @@ Phase 12 adds an isolated HTTPS Docker Compose deployment with Caddy, persistent
 ## CI/CD
 
 Phase 13 adds pull-request quality/security gates, a disposable PostgreSQL/worker integration test, SHA-tagged GHCR images, and a manual production deployment with migration, backup, health verification, and image rollback. See [the CI/CD setup and merge-protection guide](docs/PHASE13_CICD.md). GitHub environment secrets, branch protection, and the VPS must be configured before deployment.
+
+## Evaluation runs
+
+Phase 14 freezes the synthetic regression fixture and adds append-only `experiment_runs` storage for completed or failed evaluations. See the [dataset contract](backend/experiments/evaluation/PHASE14_CONTRACT.md), [run storage design](backend/experiments/evaluation/PHASE14_STEP2.md), [quality-review rubric](backend/experiments/evaluation/PHASE14_STEP4.md), [stored-run comparison](backend/experiments/evaluation/PHASE14_STEP5.md), and [CI regression gate](backend/experiments/evaluation/PHASE14_STEP6.md).
+
+The [evaluation runner](backend/experiments/evaluation/RUNNER.md) can record a completed run with `--persist` when `DATABASE_URL` points at a migrated database. JSON output remains the default and retains per-question retrieval, generation, total latency, actual provider/model, and reported token usage. Reviews and comparisons are separate append-only/read-only operations.
+
+The [Phase 14 regression snapshot](backend/experiments/evaluation/PHASE14_STEP7.md) compares vector, BM25, hybrid, and reranked hybrid on both frozen splits. Each method reached 0.9833 development and 0.95 historical held-out evidence Recall@5. The runs were retrieval-only, so answer quality and citation accuracy remain unmeasured; the synthetic corpus cannot establish production quality.

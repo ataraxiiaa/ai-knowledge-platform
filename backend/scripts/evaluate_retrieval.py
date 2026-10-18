@@ -72,7 +72,14 @@ def summarize(rows: list[dict]) -> dict:
     negative = [row for row in generated if not row["answerable"]]
     positive_generated = [row for row in generated if row["answerable"]]
     latencies = sorted(row["retrieval_ms"] for row in rows)
-    mean = lambda values: statistics.mean(values) if values else None
+    total_latencies = sorted(row.get("total_ms", row["retrieval_ms"]) for row in rows)
+    usages = [row.get("token_usage") for row in generated]
+    complete_usage = bool(usages) and all(
+        usage is not None and usage.get("prompt_tokens") is not None
+        and usage.get("completion_tokens") is not None for usage in usages
+    )
+    def mean(values):
+        return statistics.mean(values) if values else None
     return {
         "rerank_status_counts": dict(Counter(row["rerank_status"] for row in rows if "rerank_status" in row)),
         "reranking_ms_median": statistics.median([row["reranking_ms"] for row in rows if "reranking_ms" in row]) if any("reranking_ms" in row for row in rows) else None,
@@ -85,8 +92,18 @@ def summarize(rows: list[dict]) -> dict:
         "chunking_evidence_ceiling": mean([row["chunking_evidence_ceiling"] for row in positive]),
         "retrieval_ms_median": statistics.median(latencies) if latencies else None,
         "retrieval_ms_p95": latencies[max(0, math.ceil(len(latencies) * .95) - 1)] if latencies else None,
+        "p95_latency_ms": total_latencies[max(0, math.ceil(len(total_latencies) * .95) - 1)] if total_latencies else None,
+        "prompt_tokens": sum(usage["prompt_tokens"] for usage in usages) if complete_usage else None,
+        "completion_tokens": sum(usage["completion_tokens"] for usage in usages) if complete_usage else None,
+        "total_tokens": sum(usage["prompt_tokens"] + usage["completion_tokens"]
+                            for usage in usages) if complete_usage else None,
+        "token_usage_coverage": sum(usage is not None and usage.get("prompt_tokens") is not None
+                                    and usage.get("completion_tokens") is not None for usage in usages),
         "generation_attempts": len(generated),
         "generation_status_counts": dict(Counter(row["generation"]["status"] for row in generated)),
+        "actual_model_counts": dict(Counter(
+            f"{row['generation_provider']}:{row['generation_model']}" for row in generated
+            if row.get("generation_provider") and row.get("generation_model"))),
         # Errors remain in denominators; they are never counted as abstentions.
         "unanswerable_abstention_rate": mean([int(row["generation"]["status"] == "insufficient_evidence") for row in negative]),
         "answerable_abstention_rate": mean([int(row["generation"]["status"] == "insufficient_evidence") for row in positive_generated]),
@@ -101,17 +118,53 @@ def write_report(output: Path, report: dict) -> None:
     temporary.replace(output)
 
 
+def persist_report(report: dict, database_url: str) -> None:
+    """Insert one terminal row; never revise a prior experiment."""
+    if report["status"] != "complete":
+        raise ValueError("Only completed evaluation reports can be persisted")
+    if len(report["results"]) != report["expected_questions"]:
+        raise ValueError("Incomplete evaluation reports cannot be persisted")
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+    from app.models.experiments import ExperimentRun
+
+    summary = report["summary"]
+    config = {**report["config"], "split": report["split"],
+              "git_commit": report["git_commit"], "source_sha256": report["source_sha256"],
+              "python": report["python"], "platform": report["platform"],
+              "actual_model_counts": summary.get("actual_model_counts", {})}
+    engine = create_engine(database_url)
+    try:
+        with Session(engine) as session:
+            session.add(ExperimentRun(
+                id=uuid.UUID(report["run_id"]), dataset_id=report["dataset_id"],
+                corpus_sha256=report["corpus_sha256"], split_sha256=report["split_sha256"],
+                code_version=report["code_version"], configuration=config, status="completed",
+                recall_at_5=summary["recall_at_5"], citation_accuracy=summary["citation_accuracy"],
+                answer_quality=None, p95_latency_ms=summary["p95_latency_ms"],
+                prompt_tokens=summary["prompt_tokens"], completion_tokens=summary["completion_tokens"],
+                total_tokens=summary["total_tokens"],
+                started_at=datetime.fromisoformat(report["recorded_at"]),
+                completed_at=datetime.fromisoformat(report["completed_at"])))
+            session.commit()
+    finally:
+        engine.dispose()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", type=Path, default=ROOT / "experiments/evaluation")
     parser.add_argument("--split", choices=["dev", "held_out"], default="dev")
     parser.add_argument("--strategy", choices=["vector", "bm25", "hybrid", "hybrid_reranked"], default="vector")
-    parser.add_argument("--allow-held-out", action="store_true", help="Explicitly unlock the final comparison split")
+    parser.add_argument("--allow-held-out", action="store_true", help="Explicitly select the historical held-out split")
     parser.add_argument("--generate", action="store_true", help="Send questions and retrieved text to the configured LLM")
+    parser.add_argument("--persist", action="store_true", help="Insert the completed run into the configured database")
     parser.add_argument("--output", type=Path, required=True, help="New JSON file; existing files are never overwritten")
     args = parser.parse_args()
     if args.split == "held_out" and not args.allow_held_out:
-        parser.error("Held-out scoring requires --allow-held-out; reserve it for the final fixed comparison")
+        parser.error("Historical held-out scoring requires --allow-held-out")
+    if args.persist and not os.environ.get("DATABASE_URL"):
+        parser.error("--persist requires an explicit DATABASE_URL environment variable and applied migrations")
     review_path = args.output.with_suffix(".citations.json")
     if args.output.exists() or (args.generate and review_path.exists()):
         parser.error("Output already exists; choose a new output path")
@@ -135,8 +188,8 @@ def main() -> None:
     from app.services.bm25 import BM25Index, K1, B, TOKENIZER_VERSION
     from app.services.hybrid import reciprocal_rank_fusion
 
-    if args.generate and not settings.LLM_MODEL.strip():
-        parser.error("--generate requires LLM_MODEL and a reachable configured LLM_BASE_URL")
+    if args.generate and not (settings.CHAT_MODEL or settings.LLM_MODEL).strip():
+        parser.error("--generate requires CHAT_MODEL or LLM_MODEL and a reachable provider")
     chunk_size, overlap = settings.CHUNK_SIZE, settings.CHUNK_OVERLAP
     passages = []
     for document in corpus["documents"]:
@@ -162,14 +215,19 @@ def main() -> None:
     index_seconds = perf_counter() - started
     source_files = [Path(__file__), ROOT / "app/services/embeddings.py", ROOT / "app/services/text.py",
                     ROOT / "app/services/generation.py", ROOT / "app/services/bm25.py",
-                    ROOT / "app/services/reranking.py", ROOT / "app/services/hybrid.py", ROOT / "uv.lock"]
+                    ROOT / "app/services/reranking.py", ROOT / "app/services/hybrid.py",
+                    ROOT / "app/services/model_gateway.py", ROOT / "app/core/config.py",
+                    ROOT / "scripts/validate_evaluation_dataset.py", ROOT / "uv.lock"]
     commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    source_sha256 = {str(p.relative_to(ROOT)): fingerprint(p.read_bytes()) for p in source_files}
     report = {
         "run_id": str(uuid.uuid4()), "recorded_at": datetime.now(timezone.utc).isoformat(),
         "status": "running", "strategy": args.strategy if args.strategy in ("hybrid", "hybrid_reranked") else f"{args.strategy}_only", "split": args.split,
+        "dataset_id": manifest["dataset_id"], "expected_questions": len(examples),
         "corpus_sha256": fingerprint(corpus_bytes), "split_sha256": fingerprint(split_bytes),
         "git_commit": commit.stdout.strip() if commit.returncode == 0 else None,
-        "source_sha256": {str(p.relative_to(ROOT)): fingerprint(p.read_bytes()) for p in source_files},
+        "source_sha256": source_sha256,
+        "code_version": fingerprint(json.dumps(source_sha256, sort_keys=True).encode()),
         "python": platform.python_version(), "platform": platform.platform(),
         "reranker_warmup_seconds": reranker_warmup_seconds,
         "config": {"reranker": {"model": RERANK_MODEL, "candidates": settings.RERANK_CANDIDATES, "threads": settings.RERANK_THREADS, "batch_size": 8, "max_pair_tokens": 512} if args.strategy == "hybrid_reranked" else None,
@@ -182,6 +240,11 @@ def main() -> None:
                    "chunk_size": chunk_size, "chunk_overlap": overlap, "top_k": 5,
                    "chunk_count": len(passages), "tie_break": "deterministic fixture chunk UUID",
                    "llm_model": settings.LLM_MODEL if args.generate else None,
+                   "chat_provider": (settings.CHAT_PROVIDER or "openai_compatible") if args.generate else None,
+                   "chat_model": (settings.CHAT_MODEL or settings.LLM_MODEL) if args.generate else None,
+                   "fallback_provider": settings.MODEL_FALLBACK_PROVIDER if args.generate else None,
+                   "fallback_model": settings.MODEL_FALLBACK_MODEL if args.generate else None,
+                   "token_limit_field": settings.OPENAI_TOKEN_LIMIT_FIELD if args.generate else None,
                    "llm_timeout_seconds": settings.LLM_TIMEOUT_SECONDS if args.generate else None,
                    "prompt_sha256": fingerprint(SYSTEM_PROMPT.encode()) if args.generate else None},
         "index_build_seconds_including_model_load": index_seconds,
@@ -196,7 +259,7 @@ def main() -> None:
     write_report(args.output, report)
     all_passages = [p.model_dump(mode="json") for p in passages]
     for example in examples:
-        started = perf_counter()
+        question_started = started = perf_counter()
         dense, lexical = [], []
         if args.strategy in ("vector", "hybrid", "hybrid_reranked"):
             query = np.asarray(embed_texts([example["question"]])[0], dtype=np.float64)
@@ -236,24 +299,39 @@ def main() -> None:
             row["rerank_status"] = ranking[0].rerank_status if ranking else "empty"
         if args.generate:
             started = perf_counter()
+            row["token_usage"] = None
+            row["generation_provider"] = None
+            row["generation_model"] = None
+            def record_completion(completion):
+                row["generation_provider"] = completion.provider
+                row["generation_model"] = completion.model
+                if completion.usage is not None:
+                    row["token_usage"] = {"prompt_tokens": completion.usage.input_tokens,
+                                          "completion_tokens": completion.usage.output_tokens}
             try:
-                answer = generate_answer(example["question"], ranking[:5])
+                answer = generate_answer(example["question"], ranking[:5], on_completion=record_completion)
                 row["generation"] = answer.model_dump(mode="json")
             except GenerationError as exc:
                 row["generation"] = {"status": "error", "error": str(exc)}
             row["generation_ms"] = (perf_counter() - started) * 1000
+            if not ranking and row["generation"]["status"] == "insufficient_evidence":
+                row["token_usage"] = {"prompt_tokens": 0, "completion_tokens": 0}
+        row["total_ms"] = (perf_counter() - question_started) * 1000
         report["results"].append(row)
         report["summary"] = summarize(report["results"])
         write_report(args.output, report)
         print(f"{example['id']}: recall@5={row['retrieval']['recall_at_5'] if row['retrieval'] else 'n/a'}"
               + (f", generation={row['generation']['status']}" if args.generate else ""), flush=True)
     report["status"] = "complete"
+    report["completed_at"] = datetime.now(timezone.utc).isoformat()
     write_report(args.output, report)
     if args.generate:
         review = {"run_id": report["run_id"], "report_sha256": fingerprint(args.output.read_bytes()),
                   "reviewer": "", "items": [item for row in report["results"]
                     for item in citation_items(row["id"], row["generation"])]}
         write_report(review_path, review)
+    if args.persist:
+        persist_report(report, settings.DATABASE_URL)
     print(json.dumps(report["summary"], indent=2))
 
 

@@ -1,10 +1,33 @@
 import copy
+from datetime import datetime, timezone
 import json
+from pathlib import Path
+import shutil
+import uuid
 
 import pytest
+from sqlalchemy import create_engine, select
 
-from scripts.evaluate_retrieval import citation_items, fingerprint, retrieval_metrics, summarize
+from app.models.experiments import ExperimentRun
+from scripts.evaluate_retrieval import citation_items, fingerprint, persist_report, retrieval_metrics, summarize
+from scripts.validate_evaluation_dataset import validate
 from scripts.score_citation_review import score
+
+
+def test_dataset_fingerprint_rejects_changed_annotations(tmp_path):
+    source = Path(__file__).resolve().parents[1] / "experiments" / "evaluation"
+    for name in ("manifest.json", "corpus.json", "dev.json", "held-out.json"):
+        shutil.copyfile(source / name, tmp_path / name)
+    shutil.copyfile(source.parent / "corpus.json", tmp_path / "source.json")
+    (tmp_path / "manifest.json").write_text(
+        (tmp_path / "manifest.json").read_text(encoding="utf-8").replace('"source": "../corpus.json"',
+                                                                    '"source": "source.json"'), encoding="utf-8")
+    assert validate(tmp_path)["examples"] == 45
+    questions = json.loads((tmp_path / "dev.json").read_text(encoding="utf-8"))
+    questions[0]["question"] = "Changed but structurally valid question?"
+    (tmp_path / "dev.json").write_text(json.dumps(questions), encoding="utf-8")
+    with pytest.raises(ValueError, match="split fingerprint changed"):
+        validate(tmp_path)
 
 
 def example():
@@ -68,6 +91,59 @@ def test_summary_excludes_unanswerable_from_recall_but_counts_provider_errors():
     assert result["unanswerable_abstention_rate"] == .5
     assert result["retrieval_ms_median"] == 4 and result["retrieval_ms_p95"] == 6
     assert result["citation_accuracy"] is None
+
+
+def test_summary_uses_total_latency_and_never_invents_token_usage():
+    rows = [
+        {"answerable": True, "retrieval": retrieval_metrics(example(), [hit("First fact.")]),
+         "retrieval_ms": 5, "total_ms": 25, "generation": {"status": "answered"},
+         "generation_provider": "gemini", "generation_model": "model-a",
+         "token_usage": {"prompt_tokens": 10, "completion_tokens": 4}},
+        {"answerable": True, "retrieval": retrieval_metrics(example(), [hit("Second fact.")]),
+         "retrieval_ms": 8, "total_ms": 40, "generation": {"status": "error"},
+         "token_usage": None},
+    ]
+    summary = summarize(rows)
+    assert summary["p95_latency_ms"] == 40
+    assert summary["token_usage_coverage"] == 1
+    assert summary["actual_model_counts"] == {"gemini:model-a": 1}
+    assert summary["prompt_tokens"] is None and summary["total_tokens"] is None
+    rows[1]["token_usage"] = {"prompt_tokens": 3, "completion_tokens": 0}
+    summary = summarize(rows)
+    assert summary["prompt_tokens"] == 13
+    assert summary["completion_tokens"] == 4
+    assert summary["total_tokens"] == 17
+
+
+def test_persist_report_inserts_terminal_run_without_rewriting(tmp_path):
+    from sqlalchemy.exc import IntegrityError
+
+    url = f"sqlite:///{(tmp_path / 'runs.db').as_posix()}"
+    engine = create_engine(url)
+    ExperimentRun.__table__.create(engine)
+    engine.dispose()
+    timestamp = datetime.now(timezone.utc).isoformat()
+    report = {"run_id": str(uuid.uuid4()), "status": "complete", "dataset_id": "synthetic-regression-v1",
+              "expected_questions": 0, "results": [],
+              "corpus_sha256": "a" * 64, "split_sha256": "b" * 64, "code_version": "c" * 64,
+              "recorded_at": timestamp, "completed_at": timestamp, "split": "dev",
+              "git_commit": None, "source_sha256": {"runner.py": "d" * 64},
+              "python": "3.12", "platform": "test", "config": {"chunk_size": 512},
+              "summary": {"recall_at_5": 0.0, "citation_accuracy": None, "p95_latency_ms": 42.0,
+                          "prompt_tokens": None, "completion_tokens": None, "total_tokens": None}}
+    persist_report(report, url)
+    engine = create_engine(url)
+    with engine.connect() as connection:
+        stored = connection.execute(select(ExperimentRun.__table__)).one()
+    engine.dispose()
+    assert stored.recall_at_5 == 0.0 and stored.citation_accuracy is None
+    assert stored.p95_latency_ms == 42.0 and stored.configuration["chunk_size"] == 512
+    assert stored.configuration["source_sha256"]["runner.py"] == "d" * 64
+    with pytest.raises(IntegrityError):
+        persist_report(report, url)
+    report["status"] = "running"
+    with pytest.raises(ValueError, match="Only completed"):
+        persist_report(report, url)
 
 
 def review_fixture():

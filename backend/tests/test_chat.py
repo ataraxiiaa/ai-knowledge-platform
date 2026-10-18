@@ -72,6 +72,17 @@ def test_empty_context_skips_provider(monkeypatch):
     assert answer.status == "insufficient_evidence" and answer.sources == []
 
 
+def test_generation_completion_hook_receives_actual_provider_usage(monkeypatch, passage):
+    from app.services.model_gateway import Generation, TokenUsage
+
+    completion = Generation(supported_output(), "gemini", "model-a", TokenUsage(17, 9))
+    monkeypatch.setattr(generation, "complete", lambda *_: completion)
+    observed = []
+    answer = generation.generate_answer("Limitations?", [passage], on_completion=observed.append)
+    assert answer.status == "answered"
+    assert observed == [completion]
+
+
 def test_model_abstention_preserves_retrieval_for_debugging(monkeypatch, passage):
     monkeypatch.setattr(generation, "complete", lambda *_: '{"claims": []}')
     answer = generation.generate_answer("Unknown?", [passage])
