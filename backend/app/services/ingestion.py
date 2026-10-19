@@ -1,23 +1,25 @@
 """Claimed background ingestion; chunks become searchable in one transaction."""
-from datetime import datetime, timedelta, timezone
 import logging
+import uuid
+from datetime import datetime, timedelta, timezone
 from threading import Event, Thread
 from time import perf_counter
-import uuid
 
 import httpx
 from sqlalchemy import delete, exists, select, update
-from sqlalchemy.exc import DisconnectionError, OperationalError, TimeoutError as DatabaseTimeoutError
+from sqlalchemy.exc import DisconnectionError, OperationalError
+from sqlalchemy.exc import TimeoutError as DatabaseTimeoutError
+
+from app.core.config import settings
 from app.db.session import SessionLocal
 from app.models.chunks import Chunk
 from app.models.documents import Document, IngestionDispatch
 from app.models.workspaces import Workspace
-from app.services.embeddings import MODEL_NAME, validate_vectors
+from app.services import observability
+from app.services.embeddings import embedding_model_id, validate_vectors
 from app.services.model_gateway import embed as embed_texts
 from app.services.storage import StorageUnavailable, open_document
 from app.services.text import IngestionError, chunk_pages, extract_pages
-from app.core.config import settings
-from app.services import observability
 
 logger = logging.getLogger(__name__)
 LEASE_SECONDS = 120
@@ -98,7 +100,7 @@ def process_document(document_id: str, dispatch_id: str) -> None:
     thread.start()
     stage = "parsing"
     try:
-        if version != 1 or model != MODEL_NAME or size is None or overlap is None:
+        if version != 1 or model != embedding_model_id() or size is None or overlap is None:
             raise IngestionError("Unsupported saved ingestion configuration. Please upload again.")
         with open_document(workspace_id, document_id) as path:
             pages = extract_pages(path)

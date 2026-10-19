@@ -67,6 +67,23 @@ def test_embedding_cache_is_workspace_scoped(memory_cache, monkeypatch):
     assert cache.metrics(first)["layers"]["embedding"]["hits"] == 1
 
 
+def test_embedding_cache_is_provider_scoped(memory_cache, monkeypatch):
+    calls = []
+    def embed(self, texts):
+        calls.append(settings.EMBEDDING_PROVIDER)
+        return [[float(len(calls))] + [0.0] * 383]
+    monkeypatch.setattr(model_gateway.LocalEmbeddingProvider, "embed", embed)
+    workspace_id = uuid.uuid4()
+    monkeypatch.setattr(settings, "EMBEDDING_PROVIDER", "local")
+    local = model_gateway.embed(["same text"], workspace_id)
+    monkeypatch.setattr(settings, "EMBEDDING_PROVIDER", "cloudflare")
+    remote = model_gateway.embed(["same text"], workspace_id)
+    assert local != remote
+    assert calls == ["local", "cloudflare"]
+    assert model_gateway.embed(["same text"], workspace_id) == remote
+    assert calls == ["local", "cloudflare"]
+
+
 def test_retrieval_cache_changes_with_corpus_revision(ingestion_client, db_session,
                                                       memory_cache, monkeypatch):
     headers, workspace_id = owner(ingestion_client)

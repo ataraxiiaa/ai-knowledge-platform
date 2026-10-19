@@ -8,19 +8,18 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.chunks import Chunk
 from app.models.documents import Document
 from app.models.workspaces import Workspace
-from app.core.config import settings
-from app.services.bm25 import BM25Index, tokenize
-from app.services.hybrid import reciprocal_rank_fusion
 from app.schemas.documents import SearchResult
+from app.services import cache, observability
+from app.services.bm25 import BM25Index, tokenize
+from app.services.embeddings import EmbeddingServiceError, embedding_model_id
+from app.services.hybrid import reciprocal_rank_fusion
 from app.services.model_gateway import embed as embed_texts
-from app.services import cache
-from app.services.embeddings import MODEL_NAME as EMBEDDING_MODEL_NAME
 from app.services.reranking import MODEL_NAME as RERANK_MODEL_NAME
 from app.services.text import IngestionError
-from app.services import observability
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +52,7 @@ def _retrieve_cached(function, query, top_k, workspace_id, db, method):
     revision = db.scalar(select(Workspace.corpus_revision).where(Workspace.id == workspace_id))
     if revision is None:
         return function(query, top_k, workspace_id, db)
-    configuration = {"embedding_model": EMBEDDING_MODEL_NAME,
+    configuration = {"embedding_model": embedding_model_id(),
         "rerank_model": RERANK_MODEL_NAME,
         "bm25_max": settings.BM25_MAX_CHUNKS,
         "hybrid_candidates": settings.HYBRID_CANDIDATES,
@@ -116,6 +115,8 @@ def retrieve_passages(query: str, top_k: int, workspace_id: uuid.UUID, db: Sessi
         raise HTTPException(422, "Query cannot be blank")
     try:
         vector = embed_texts([query], workspace_id)[0]
+    except EmbeddingServiceError as exc:
+        raise HTTPException(503, str(exc)) from exc
     except IngestionError as exc:
         raise HTTPException(422, str(exc)) from exc
     except Exception as exc:
@@ -125,7 +126,8 @@ def retrieve_passages(query: str, top_k: int, workspace_id: uuid.UUID, db: Sessi
     rows = db.execute(
         select(Chunk, Document.filename, distance.label("distance"))
         .join(Document, Document.id == Chunk.document_id)
-        .where(Document.workspace_id == workspace_id, Document.status == "ready")
+        .where(Document.workspace_id == workspace_id, Document.status == "ready",
+               Document.embedding_model == embedding_model_id())
         .order_by(distance, Chunk.id).limit(top_k)
     ).all()
     return [SearchResult(

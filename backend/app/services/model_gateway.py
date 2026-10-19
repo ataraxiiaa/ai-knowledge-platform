@@ -1,20 +1,19 @@
 """Provider-neutral inference routing. Application services use only this module."""
-from dataclasses import dataclass
-from collections.abc import Iterator
 import json
 import logging
 import math
-from time import perf_counter
-import uuid
 import time
+import uuid
+from collections.abc import Iterator
+from dataclasses import dataclass
+from time import perf_counter
 from typing import Literal, Protocol
 from urllib.parse import quote
 
 import httpx
 
 from app.core.config import settings
-from app.services import cache
-from app.services import observability
+from app.services import cache, observability
 
 logger = logging.getLogger(__name__)
 Task = Literal["chat", "research_plan", "research_draft"]
@@ -276,8 +275,10 @@ class LocalEmbeddingProvider:
         return embed_texts(texts)
 
     def health(self) -> bool:
-        from app.services.embeddings import _model
+        from app.services.embeddings import _model, embed_texts
         try:
+            if settings.EMBEDDING_PROVIDER == "cloudflare":
+                return len(embed_texts(["health check"])) == 1
             _model()
             return True
         except Exception:
@@ -407,11 +408,11 @@ def embed(texts: list[str], workspace_id: uuid.UUID | None = None) -> list[list[
         return []
     if workspace_id is None:
         return LocalEmbeddingProvider().embed(texts)
-    from app.services.embeddings import DIMENSIONS, MODEL_NAME
+    from app.services.embeddings import DIMENSIONS, embedding_model_id
     vectors: list[list[float] | None] = [None] * len(texts)
     missing: dict[str, tuple[str, list[int]]] = {}
     for index, value in enumerate(texts):
-        cache_key = cache.key("embedding", workspace_id, MODEL_NAME, DIMENSIONS, value)
+        cache_key = cache.key("embedding", workspace_id, embedding_model_id(), DIMENSIONS, value)
         entry = cache.get("embedding", workspace_id, cache_key)
         vector = entry.get("data") if entry else None
         if isinstance(vector, list) and len(vector) == DIMENSIONS and all(

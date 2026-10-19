@@ -37,6 +37,15 @@ def test_model_failure_and_empty_input(monkeypatch):
     assert reranking.rerank_passages("q", [hit(1)])[0].rerank_status == "fallback"
 
 
+def test_reranking_can_be_disabled_without_loading_model(monkeypatch):
+    monkeypatch.setattr(settings, "RERANK_ENABLED", False)
+    monkeypatch.setattr(reranking, "score_passages", lambda *args: pytest.fail("Reranker loaded"))
+    result = reranking.rerank_passages("q", [hit(2), hit(1)])
+    assert [item.chunk_id.int for item in result] == [2, 1]
+    assert all(item.rerank_status == "fallback" and item.retrieval_method == "hybrid"
+               for item in result)
+
+
 def test_candidate_budget_then_top_k(monkeypatch):
     seen = []
     def hybrid(query, count, workspace, db):

@@ -10,13 +10,23 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models.chunks import Chunk
 from app.models.documents import Document, IngestionDispatch
-from app.models.research import ResearchDispatch, ResearchJob, ResearchJobSource, ResearchJobStep
-from app.services.ingestion import now
+from app.models.research import (
+    ResearchDispatch,
+    ResearchJob,
+    ResearchJobSource,
+    ResearchJobStep,
+)
 from app.models.users import User
 from app.models.workspaces import Workspace
 from app.schemas.documents import DocumentResponse, SearchRequest, SearchResult
-from app.services.retrieval import retrieve_bm25, retrieve_hybrid, retrieve_passages, retrieve_reranked
-from app.services.embeddings import MODEL_NAME
+from app.services.embeddings import embedding_model_id
+from app.services.ingestion import now
+from app.services.retrieval import (
+    retrieve_bm25,
+    retrieve_hybrid,
+    retrieve_passages,
+    retrieve_reranked,
+)
 from app.services.storage import delete_document_file, store_pdf
 
 router = APIRouter(prefix="/workspaces", tags=["Documents"])
@@ -67,7 +77,8 @@ def upload_document(
     document = Document(
         id=document_id, workspace_id=workspace.id, filename=filename,
         storage_path=storage_key, status="queued",
-        chunk_size=size, chunk_overlap=overlap, pipeline_version=1, embedding_model=MODEL_NAME,
+        chunk_size=size, chunk_overlap=overlap, pipeline_version=1,
+        embedding_model=embedding_model_id(),
         max_attempts=settings.INGESTION_MAX_ATTEMPTS,
     )
     try:

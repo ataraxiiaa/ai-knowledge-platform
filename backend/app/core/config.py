@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     EMBEDDING_CACHE_DIR: Path = BACKEND_DIR / ".cache" / "embeddings"
     EMBEDDING_THREADS: int = Field(default=2, ge=1, le=16)
     EMBEDDING_BATCH_SIZE: int = Field(default=16, ge=1, le=64)
+    EMBEDDING_PROVIDER: Literal["local", "cloudflare"] = "local"
+    CLOUDFLARE_ACCOUNT_ID: str = ""
+    CLOUDFLARE_API_TOKEN: str = Field(default="", repr=False)
+    CLOUDFLARE_EMBEDDING_TIMEOUT_SECONDS: float = Field(default=30, gt=0, le=120)
     MAX_UPLOAD_BYTES: int = Field(default=10 * 1024 * 1024, ge=1024)
     MAX_PDF_PAGES: int = Field(default=100, ge=1)
     MAX_DOCUMENT_CHARS: int = Field(default=1_000_000, ge=1)
@@ -69,6 +73,7 @@ class Settings(BaseSettings):
     HYBRID_CANDIDATES: int = Field(default=20, ge=20, le=200)
     RERANK_CACHE_DIR: Path = BACKEND_DIR / ".cache" / "rerankers"
     RERANK_THREADS: int = Field(default=2, ge=1, le=16)
+    RERANK_ENABLED: bool = True
     RERANK_CANDIDATES: int = Field(default=20, ge=20, le=200)
     HYBRID_RRF_K: int = Field(default=60, ge=1, le=1000)
     RAG_RETRIEVAL_METHOD: Literal["vector", "bm25", "hybrid", "hybrid_reranked"] = "vector"
@@ -89,6 +94,9 @@ class Settings(BaseSettings):
             raise ValueError("CHUNK_OVERLAP must be less than CHUNK_SIZE")
         if self.STORAGE_BACKEND == "s3" and not self.S3_BUCKET:
             raise ValueError("S3_BUCKET is required when STORAGE_BACKEND=s3")
+        if self.EMBEDDING_PROVIDER == "cloudflare" and not (
+                self.CLOUDFLARE_ACCOUNT_ID.strip() and self.CLOUDFLARE_API_TOKEN.strip()):
+            raise ValueError("Cloudflare embedding requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN")
         return self
 
     @field_validator("SECRET_KEY")

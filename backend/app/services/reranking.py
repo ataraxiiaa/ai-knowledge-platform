@@ -1,7 +1,7 @@
 """CPU cross-encoder scoring with explicit, source-preserving hybrid fallback."""
-from functools import lru_cache
 import logging
 import math
+from functools import lru_cache
 from threading import Lock
 from time import perf_counter
 
@@ -43,6 +43,9 @@ def rerank_passages(query: str, candidates: list[SearchResult]) -> list[SearchRe
     candidates = candidates[:settings.RERANK_CANDIDATES]
     if not candidates:
         return []
+    if not settings.RERANK_ENABLED:
+        return [hit.model_copy(update={"retrieval_method": "hybrid", "rerank_score": None,
+                                       "rerank_status": "fallback"}) for hit in candidates]
     started = perf_counter()
     with observability.span("rag.reranking", {"rag.reranking.candidates": len(candidates)}) as span:
         return _rerank_observed(query, candidates, started, span)
