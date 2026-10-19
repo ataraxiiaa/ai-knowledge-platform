@@ -1,8 +1,8 @@
-from pathlib import Path
-from contextlib import contextmanager
 import shutil
 import tempfile
 import uuid
+from contextlib import contextmanager
+from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
@@ -19,10 +19,14 @@ def document_key(workspace_id: uuid.UUID, document_id: uuid.UUID) -> str:
 
 def s3_client():
     import boto3
+    from botocore.config import Config
 
     options = {"region_name": settings.S3_REGION}
     if settings.S3_ENDPOINT_URL:
         options["endpoint_url"] = settings.S3_ENDPOINT_URL
+        # Supabase Storage (and other custom S3 endpoints) require the bucket
+        # in the URL path rather than as a subdomain of the endpoint host.
+        options["config"] = Config(s3={"addressing_style": "path"})
     return boto3.client("s3", **options)
 
 
@@ -37,9 +41,9 @@ def store_pdf(upload: UploadFile, workspace_id: uuid.UUID, document_id: uuid.UUI
     path = document_path(workspace_id, document_id)
     if settings.STORAGE_BACKEND == "local":
         path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = tempfile.SpooledTemporaryFile(max_size=1024 * 1024) if settings.STORAGE_BACKEND == "s3" else None
     try:
-        with (temporary if temporary is not None else path.open("xb")) as destination:
+        with (tempfile.SpooledTemporaryFile(max_size=1024 * 1024)
+              if settings.STORAGE_BACKEND == "s3" else path.open("xb")) as destination:
             total = 0
             while data := upload.file.read(64 * 1024):
                 if total == 0 and not data.startswith(b"%PDF-"):
@@ -50,7 +54,7 @@ def store_pdf(upload: UploadFile, workspace_id: uuid.UUID, document_id: uuid.UUI
                 destination.write(data)
             if total == 0:
                 raise HTTPException(400, "The uploaded file is empty.")
-            if temporary is not None:
+            if settings.STORAGE_BACKEND == "s3":
                 destination.seek(0)
                 s3_client().upload_fileobj(destination, settings.S3_BUCKET, key,
                                            ExtraArgs={"ContentType": "application/pdf"})

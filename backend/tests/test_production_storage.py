@@ -1,11 +1,29 @@
-from io import BytesIO
 import os
 import uuid
+from io import BytesIO
 
-from fastapi import HTTPException, UploadFile
 import pytest
+from fastapi import HTTPException, UploadFile
 
 from app.services import storage
+
+
+def test_custom_s3_endpoint_uses_path_style_for_supabase(monkeypatch):
+    import boto3
+
+    captured = {}
+    monkeypatch.setattr(storage.settings, "S3_REGION", "ap-southeast-1")
+    monkeypatch.setattr(storage.settings, "S3_ENDPOINT_URL",
+                        "https://project.storage.supabase.co/storage/v1/s3")
+    monkeypatch.setattr(boto3, "client", lambda service, **options: captured.update(
+        service=service, **options))
+
+    storage.s3_client()
+
+    assert captured["service"] == "s3"
+    assert captured["region_name"] == "ap-southeast-1"
+    assert captured["endpoint_url"].endswith("/storage/v1/s3")
+    assert captured["config"].s3["addressing_style"] == "path"
 
 
 def test_s3_upload_download_delete_and_workspace_cleanup(monkeypatch, tmp_path):
@@ -71,9 +89,9 @@ def test_s3_download_failure_is_retryable(monkeypatch):
 
     monkeypatch.setattr(storage.settings, "STORAGE_BACKEND", "s3")
     monkeypatch.setattr(storage, "s3_client", Client)
-    with pytest.raises(storage.StorageUnavailable) as error:
-        with storage.open_document(uuid.uuid4(), uuid.uuid4()):
-            pass
+    with pytest.raises(storage.StorageUnavailable) as error, storage.open_document(
+            uuid.uuid4(), uuid.uuid4()):
+        pass
     assert retryable_failure(error.value, "parsing")
 
 

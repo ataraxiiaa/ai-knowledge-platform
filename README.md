@@ -344,6 +344,21 @@ message when the service wakes and checks it. A running job is recovered after
 its lease expires. Re-upload PDFs after a deploy or restart if the originals
 are needed again. Keep `WEB_LOCAL_JOBS=false` for the normal Redis/RQ deployment.
 
+To keep PDFs across Render restarts, use a **private Supabase Storage bucket**
+through its S3-compatible endpoint. In Supabase Storage settings, enable the S3
+protocol and create server-side S3 access keys with access to the bucket. Set
+`STORAGE_BACKEND=s3`, `S3_BUCKET` to the bucket name, `S3_REGION` and
+`S3_ENDPOINT_URL` to the exact values displayed by Supabase, and
+`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` to those S3 credentials on the Render
+backend service. The endpoint normally looks like
+`https://<project-ref>.storage.supabase.co/storage/v1/s3`; do not use the REST
+object URL. The backend uses path-style S3 addressing for custom endpoints.
+`WEB_LOCAL_JOBS=true`, `CACHE_ENABLED=false`, and `WEB_CONCURRENCY=1` can stay
+set: the web process downloads a private PDF for indexing. Keep all storage
+credentials off the frontend. Existing local uploads are not copied into the
+bucket; re-upload them after switching storage. The web service still sleeps on
+Render free, so queued/running jobs resume only when it wakes.
+
 Compose now uses `pgvector/pgvector:pg16` and separate persistent database and ingestion
 volumes. Do not delete an existing database volume when switching images.
 
