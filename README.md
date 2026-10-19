@@ -326,6 +326,24 @@ See https://render.com/docs/disks. Free web services cannot attach persistent di
 see https://render.com/docs/free. This implementation needs persistent disk storage
 for durable original PDFs, or a future object-storage adapter.
 
+### Single free web service test mode
+
+For a disposable demonstration on Render's free web service, set
+`WEB_LOCAL_JOBS=true`, `STORAGE_BACKEND=local`, `CACHE_ENABLED=false`, and
+`WEB_CONCURRENCY=1` on the backend service. Leave the start command as
+`alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+The API then polls PostgreSQL's durable ingestion and research dispatch rows in
+one background thread and executes jobs in the web process. Redis and separate
+dispatcher/worker services are not required in this mode. Use only one web
+instance; processing is serialized and shares its memory with the API.
+
+This mode is for testing, not durable production. Render's free web service
+loses its local uploads on sleep, restart, and deploy, and jobs stop while it is
+asleep. A queued PDF missing after restart is marked Failed with a re-upload
+message when the service wakes and checks it. A running job is recovered after
+its lease expires. Re-upload PDFs after a deploy or restart if the originals
+are needed again. Keep `WEB_LOCAL_JOBS=false` for the normal Redis/RQ deployment.
+
 Compose now uses `pgvector/pgvector:pg16` and separate persistent database and ingestion
 volumes. Do not delete an existing database volume when switching images.
 

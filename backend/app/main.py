@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,10 +8,25 @@ from app.core.config import settings
 from app.services import observability
 
 
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    if not settings.WEB_LOCAL_JOBS:
+        yield
+        return
+    from app.services.web_local_jobs import start
+    stop, thread = start()
+    try:
+        yield
+    finally:
+        stop.set()
+        thread.join(timeout=5)
+
+
 app = FastAPI(
     title="AI Knowledge Platform API",
     version="0.1.0",
     description="API for AI Knowledge Platform",
+    lifespan=lifespan,
 )
 observability.initialize("ai-knowledge-api")
 

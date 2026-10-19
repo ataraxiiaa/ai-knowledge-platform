@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import Literal
+
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,6 +12,7 @@ DEFAULT_SQLITE_PATH = (BACKEND_DIR / "app.db").as_posix()
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Knowledge Platform"
     REDIS_URL: str = Field(default="redis://127.0.0.1:6379/0", repr=False)
+    WEB_LOCAL_JOBS: bool = False
     CACHE_ENABLED: bool = True
     EMBEDDING_CACHE_TTL_SECONDS: int = Field(default=86400, ge=60, le=604800)
     RETRIEVAL_CACHE_TTL_SECONDS: int = Field(default=300, ge=10, le=3600)
