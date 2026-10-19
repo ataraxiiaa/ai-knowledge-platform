@@ -92,7 +92,7 @@ def run_once() -> bool:
 
 
 def _loop(stop: Event) -> None:
-    logger.warning("Web-local job runner enabled; local PDFs are lost on Render restarts")
+    logger.warning("Web-local job runner enabled; storage_backend=%s", settings.STORAGE_BACKEND)
     while not stop.is_set():
         try:
             if run_once():

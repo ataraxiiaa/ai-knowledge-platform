@@ -1,7 +1,7 @@
 """One lazy-loaded CPU model per process; no remote embedding API."""
+import math
 from functools import lru_cache
 from threading import Lock
-import math
 
 from app.core.config import settings
 from app.services.text import IngestionError
@@ -47,7 +47,8 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
         model, tokenizer = _model()
         if any(len(tokenizer.encode(text).ids) > MAX_TOKENS for text in texts):
             raise IngestionError("Text exceeds the embedding model's 512-token limit. Use smaller chunks or a shorter query.")
-        vectors = [vector.tolist() for vector in model.embed(texts, batch_size=16)]
+        vectors = [vector.tolist() for vector in model.embed(
+            texts, batch_size=settings.EMBEDDING_BATCH_SIZE)]
     validate_vectors(vectors, len(texts))
     return vectors
 

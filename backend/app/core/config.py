@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     S3_ENDPOINT_URL: str = ""
     EMBEDDING_CACHE_DIR: Path = BACKEND_DIR / ".cache" / "embeddings"
     EMBEDDING_THREADS: int = Field(default=2, ge=1, le=16)
+    EMBEDDING_BATCH_SIZE: int = Field(default=16, ge=1, le=64)
     MAX_UPLOAD_BYTES: int = Field(default=10 * 1024 * 1024, ge=1024)
     MAX_PDF_PAGES: int = Field(default=100, ge=1)
     MAX_DOCUMENT_CHARS: int = Field(default=1_000_000, ge=1)

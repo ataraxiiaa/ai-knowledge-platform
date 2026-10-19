@@ -359,6 +359,13 @@ credentials off the frontend. Existing local uploads are not copied into the
 bucket; re-upload them after switching storage. The web service still sleeps on
 Render free, so queued/running jobs resume only when it wakes.
 
+Render's free web instance has a 512 MB memory limit. If the local embedding
+model is killed for exceeding it, try `EMBEDDING_THREADS=1` and
+`EMBEDDING_BATCH_SIZE=1` on the backend service before re-uploading one PDF.
+This lowers concurrent embedding work but cannot guarantee the model and API
+will fit together; confirm the cause and result in Render Events. Keep
+`WEB_CONCURRENCY=1` so the model is loaded in only one web process.
+
 Compose now uses `pgvector/pgvector:pg16` and separate persistent database and ingestion
 volumes. Do not delete an existing database volume when switching images.
 

@@ -4,6 +4,9 @@ import os
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 os.environ["SECRET_KEY"] = "test-only-secret-not-for-deployment-0123456789"
 os.environ["CORS_ORIGINS"] = "http://localhost:3000"
+os.environ["WEB_LOCAL_JOBS"] = "false"
+os.environ["STORAGE_BACKEND"] = "local"
+os.environ["LLM_BASE_URL"] = "http://localhost:11434/v1"
 
 import pytest
 from fastapi.testclient import TestClient
